@@ -44,8 +44,15 @@ final class WatchRelay: NSObject, ObservableObject {
         ConnectIQ.sharedInstance().showDeviceSelection()
     }
 
+    // The SDK doesn't persist the chosen device across launches, so we archive
+    // it ourselves — otherwise every cold start needs a trip through Garmin
+    // Connect Mobile's picker.
+    private static let storedDeviceKey = "cheerrelay.selectedDevice"
+
     private func restoreKnownDevice() {
-        guard let known = ConnectIQ.sharedInstance().knownDevices()?.first as? IQDevice else { return }
+        guard let data = UserDefaults.standard.data(forKey: Self.storedDeviceKey),
+              let known = try? NSKeyedUnarchiver.unarchivedObject(ofClass: IQDevice.self, from: data)
+        else { return }
         adopt(device: known)
     }
 
@@ -56,6 +63,11 @@ final class WatchRelay: NSObject, ObservableObject {
                           device: device)
         ConnectIQ.sharedInstance().register(forDeviceEvents: device, delegate: self)
         connectedDeviceName = device.friendlyName
+
+        if let data = try? NSKeyedArchiver.archivedData(withRootObject: device,
+                                                        requiringSecureCoding: true) {
+            UserDefaults.standard.set(data, forKey: Self.storedDeviceKey)
+        }
     }
 
     func send(_ message: CheerMessage) {
@@ -63,26 +75,23 @@ final class WatchRelay: NSObject, ObservableObject {
             lastSendError = "No watch selected yet — tap Connect."
             return
         }
-        do {
-            try ConnectIQ.sharedInstance().sendMessage(
-                message.payload,
-                to: app,
-                progress: nil,
-                completion: { [weak self] result in
-                    DispatchQueue.main.async {
-                        switch result {
-                        case .success:
-                            self?.lastSentAt = Date()
-                            self?.lastSendError = nil
-                        default:
-                            self?.lastSendError = "Delivery failed (\(result)) — will retry next poll."
-                        }
+        ConnectIQ.sharedInstance().sendMessage(
+            message.payload,
+            to: app,
+            progress: nil,
+            completion: { [weak self] result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success:
+                        self?.lastSentAt = Date()
+                        self?.lastSendError = nil
+                    default:
+                        let reason = NSStringFromSendMessageResult(result) ?? "unknown"
+                        self?.lastSendError = "Delivery failed (\(reason)) — will retry next poll."
                     }
                 }
-            )
-        } catch {
-            lastSendError = "Send threw: \(error.localizedDescription)"
-        }
+            }
+        )
     }
 }
 
