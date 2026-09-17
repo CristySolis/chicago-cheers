@@ -3,7 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var relay: WatchRelay
     @StateObject private var poller = SheetPoller()
-    @State private var received: [CheerMessage] = []
 
     var body: some View {
         NavigationView {
@@ -14,7 +13,7 @@ struct ContentView: View {
                     Text(error).foregroundColor(.red).font(.footnote)
                 }
 
-                List(received.reversed()) { msg in
+                List(poller.received.reversed()) { msg in
                     VStack(alignment: .leading) {
                         Text(msg.sender).font(.headline)
                         Text(msg.text).font(.body)
@@ -25,7 +24,7 @@ struct ContentView: View {
                     let test = CheerMessage(id: UUID().uuidString, sender: "Test",
                                              text: "GO CRISTY GO! 🎉", timestamp: Date())
                     relay.send(test)
-                    received.append(test)
+                    poller.received.append(test)
                 }
                 .buttonStyle(.borderedProminent)
             }
@@ -33,11 +32,9 @@ struct ContentView: View {
             .navigationTitle("Chicago Cheer Squad")
             .onAppear {
                 relay.initializeSDK()
+                let watch = relay // capture the object, not this view struct
                 poller.onNewMessages = { fresh in
-                    for msg in fresh {
-                        relay.send(msg)
-                        received.append(msg)
-                    }
+                    fresh.forEach(watch.send)
                 }
                 poller.start()
             }

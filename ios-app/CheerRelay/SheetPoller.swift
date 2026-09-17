@@ -10,6 +10,11 @@ final class SheetPoller: ObservableObject {
     private(set) var seenIds = Set<String>()
     private var timer: Timer?
 
+    /// Every cheer seen this session, oldest first. Owned here rather than in the
+    /// view: a closure captured once in .onAppear writes to a @State location
+    /// SwiftUI has already discarded, so appends from it are silently lost.
+    @Published var received: [CheerMessage] = []
+
     /// Called on the main thread with any new messages, oldest first.
     var onNewMessages: (([CheerMessage]) -> Void)?
 
@@ -58,6 +63,7 @@ final class SheetPoller: ObservableObject {
 
             guard !fresh.isEmpty else { return }
             DispatchQueue.main.async {
+                self.received.append(contentsOf: fresh)
                 self.onNewMessages?(fresh)
             }
         }.resume()
