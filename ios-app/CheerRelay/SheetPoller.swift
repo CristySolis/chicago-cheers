@@ -28,8 +28,13 @@ final class SheetPoller: ObservableObject {
 
     func fetchOnce() {
         let request = URLRequest(url: Config.sheetCSVURL, cachePolicy: .reloadIgnoringLocalCacheData)
-        URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            // Google serves an HTML error/login page on a bad or unpublished
+            // URL. Parsing that as CSV relays page markup to the watch as
+            // cheers, so only accept an actual CSV 200.
             guard let self, let data, error == nil,
+                  let http = response as? HTTPURLResponse, http.statusCode == 200,
+                  http.mimeType?.hasPrefix("text/csv") == true,
                   let csv = String(data: data, encoding: .utf8) else { return }
 
             let rows = Self.parseCSV(csv)
