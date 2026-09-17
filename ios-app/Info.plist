@@ -26,6 +26,12 @@
 	<string>Tracks how far into the race you are, so each supporter's recording plays at the mile they claimed.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Tracks how far into the race you are, so each supporter's recording plays at the mile they claimed.</string>
+	<!-- Lets recordings be dropped in from Finder or the Files app, since they
+	     are gathered in the week before the race, long after this is installed. -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>gcm-ciq</string>
