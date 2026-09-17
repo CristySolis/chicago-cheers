@@ -59,12 +59,6 @@ struct RaceView: View {
                     .foregroundColor(.orange)
             }
 
-            if tracker.isEstimating {
-                Label("No GPS — estimating from your pace", systemImage: "location.slash")
-                    .font(.footnote)
-                    .foregroundColor(.orange)
-            }
-
             if let next = tracker.nextMile {
                 Text(library.recordings(forMile: next).isEmpty
                      ? "Next cheer: none placed yet"

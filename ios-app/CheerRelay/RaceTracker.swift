@@ -18,10 +18,6 @@ final class RaceTracker: NSObject, ObservableObject {
     @Published private(set) var isRunning = false
     @Published private(set) var problem: String?
 
-    /// True while distance is being estimated from pace because GPS has gone
-    /// quiet — under bridges, among tall buildings, or if the receiver fails.
-    @Published private(set) var isEstimating = false
-
     /// False until the first real fix arrives, so "waiting for GPS" is never
     /// mistaken for "running normally".
     @Published private(set) var hasFix = false
@@ -36,24 +32,10 @@ final class RaceTracker: NSObject, ObservableObject {
     private var lastFix: CLLocation?
     private var reachedMiles: Set<Int> = []
 
-    private var startedAt: Date?
-    private var lastFixAt: Date?
-    private var estimatedUpTo: Date?
-    private var estimatingPace: Double = 0
-    private var watchdog: Timer?
-
-    /// How long without a fix before falling back to pace.
-    private static let staleAfter: TimeInterval = 90
-
-    /// Used only if GPS dies before there's enough history to measure her own
-    /// pace — roughly a ten minute mile.
-    private static let fallbackPace = metresPerMile / 600
-
     private enum Key {
         static let metres = "race.metres"
         static let reached = "race.reachedMiles"
         static let running = "race.isRunning"
-        static let startedAt = "race.startedAt"
     }
 
     var milesCovered: Double { metres / Self.metresPerMile }
@@ -87,12 +69,6 @@ final class RaceTracker: NSObject, ObservableObject {
         manager.allowsBackgroundLocationUpdates = true
         manager.startUpdatingLocation()
         isRunning = true
-        if startedAt == nil { startedAt = Date() }
-        // lastFixAt is deliberately left nil until a real fix lands. The pace
-        // fallback exists to cover *losing* GPS, never to cover never having
-        // had it — priming this made the app invent distance while location
-        // permission was still being asked for.
-        startWatchdog()
         persist()
     }
 
@@ -101,9 +77,6 @@ final class RaceTracker: NSObject, ObservableObject {
         manager.allowsBackgroundLocationUpdates = false
         isRunning = false
         lastFix = nil
-        endEstimating()
-        watchdog?.invalidate()
-        watchdog = nil
         persist()
     }
 
@@ -113,63 +86,8 @@ final class RaceTracker: NSObject, ObservableObject {
         stop()
         metres = 0
         reachedMiles = []
-        startedAt = nil
+        hasFix = false
         persist()
-    }
-
-    // MARK: - Pace fallback
-
-    /// GPS is the source of truth, but losing it must not mean losing the rest
-    /// of the race. When fixes stop arriving, distance keeps advancing at the
-    /// pace she has actually been running, so later cheers still land roughly
-    /// where they were placed.
-    private func startWatchdog() {
-        watchdog?.invalidate()
-        watchdog = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
-            self?.checkForStaleFixes()
-        }
-    }
-
-    private func checkForStaleFixes() {
-        guard isRunning, let last = lastFixAt else { return }
-
-        guard Date().timeIntervalSince(last) > Self.staleAfter else {
-            endEstimating()
-            return
-        }
-
-        if !isEstimating { beginEstimating(from: last) }
-
-        let now = Date()
-        let since = estimatedUpTo ?? last
-        let gap = now.timeIntervalSince(since)
-        guard gap > 0 else { return }
-
-        metres += gap * estimatingPace
-        estimatedUpTo = now
-        announceMilesPassed()
-        persist()
-    }
-
-    private func beginEstimating(from wentQuiet: Date) {
-        // Her measured pace so far, frozen now rather than recomputed from a
-        // total that estimation is itself inflating.
-        if let started = startedAt {
-            let elapsed = wentQuiet.timeIntervalSince(started)
-            estimatingPace = (elapsed > 300 && metres > 500) ? metres / elapsed : Self.fallbackPace
-        } else {
-            estimatingPace = Self.fallbackPace
-        }
-        estimatedUpTo = wentQuiet
-        lastFix = nil // the next real fix re-baselines instead of jumping
-        isEstimating = true
-    }
-
-    private func endEstimating() {
-        guard isEstimating else { return }
-        isEstimating = false
-        estimatedUpTo = nil
-        lastFix = nil
     }
 
     func hasReached(mile: Int) -> Bool { reachedMiles.contains(mile) }
@@ -185,14 +103,12 @@ final class RaceTracker: NSObject, ObservableObject {
         defaults.set(metres, forKey: Key.metres)
         defaults.set(Array(reachedMiles), forKey: Key.reached)
         defaults.set(isRunning, forKey: Key.running)
-        defaults.set(startedAt, forKey: Key.startedAt)
     }
 
     private func restore() {
         let defaults = UserDefaults.standard
         metres = defaults.double(forKey: Key.metres)
         reachedMiles = Set(defaults.array(forKey: Key.reached) as? [Int] ?? [])
-        startedAt = defaults.object(forKey: Key.startedAt) as? Date
 
         // Resume automatically after a crash rather than waiting to be noticed.
         if defaults.bool(forKey: Key.running) {
@@ -207,9 +123,7 @@ final class RaceTracker: NSObject, ObservableObject {
         guard fix.timestamp.timeIntervalSinceNow > -5 else { return }
 
         problem = nil // fixes are flowing again
-        lastFixAt = Date()
         hasFix = true
-        endEstimating()
 
         defer { lastFix = fix }
         guard let previous = lastFix else { return }
@@ -256,8 +170,6 @@ extension RaceTracker: CLLocationManagerDelegate {
         switch manager.authorizationStatus {
         case .denied, .restricted:
             problem = "Location access denied — distance can't be tracked."
-        case .notDetermined:
-            problem = nil
         default:
             // "While Using" is enough: allowsBackgroundLocationUpdates keeps
             // fixes coming with the screen locked, marked by the blue pill.
