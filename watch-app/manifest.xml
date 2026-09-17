@@ -31,7 +31,6 @@
         name="@Strings.AppName"
         type="datafield"
         version="1.0.0">
-        <iq:background/>
         <iq:products>
             <iq:product id="fr935"/>
         </iq:products>
