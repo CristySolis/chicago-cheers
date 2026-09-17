@@ -328,6 +328,7 @@
 			baseConfigurationReference = CF33A3B6881B4BB8CA1C6059 /* Pods-CheerRelay.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -374,6 +375,7 @@
 			baseConfigurationReference = 264901A5F64108CBE7349470 /* Pods-CheerRelay.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
