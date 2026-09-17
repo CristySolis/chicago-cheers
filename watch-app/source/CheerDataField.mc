@@ -102,8 +102,29 @@ class CheerDataField extends WatchUi.DataField {
         }
     }
 
-    function wrapText(dc as Graphics.Dc, text as String, font, maxWidth as Float) as Array<String> {
-        var words = text.split(" ", null);
+    // Monkey C's String has no split(), so words are gathered by hand.
+    function splitWords(text as String) as Array<String> {
+        var words = [] as Array<String>;
+        var current = "";
+        for (var i = 0; i < text.length(); i++) {
+            var ch = text.substring(i, i + 1);
+            if (ch == null || ch.equals(" ")) {
+                if (current.length() > 0) {
+                    words.add(current);
+                    current = "";
+                }
+            } else {
+                current += ch;
+            }
+        }
+        if (current.length() > 0) {
+            words.add(current);
+        }
+        return words;
+    }
+
+    function wrapText(dc as Graphics.Dc, text as String, font as Graphics.FontType, maxWidth as Float) as Array<String> {
+        var words = splitWords(text);
         var lines = [] as Array<String>;
         var current = "";
 
