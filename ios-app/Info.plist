@@ -19,8 +19,13 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
+		<string>location</string>
 		<string>fetch</string>
 	</array>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Tracks how far into the race you are, so each supporter's recording plays at the mile they claimed.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Tracks how far into the race you are, so each supporter's recording plays at the mile they claimed.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>gcm-ciq</string>
