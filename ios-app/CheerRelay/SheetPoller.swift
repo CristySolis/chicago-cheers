@@ -83,7 +83,10 @@ final class SheetPoller: ObservableObject {
                 switch ch {
                 case "\"": inQuotes = true
                 case ",": row.append(field); field = ""
-                case "\n": row.append(field); field = ""; rows.append(row); row = []
+                // Swift treats CRLF as one Character, so "\r\n" must be matched
+                // explicitly — Google's CSV export uses it and would otherwise
+                // never terminate a row.
+                case "\n", "\r\n": row.append(field); field = ""; rows.append(row); row = []
                 case "\r": break
                 default: field.append(ch)
                 }
