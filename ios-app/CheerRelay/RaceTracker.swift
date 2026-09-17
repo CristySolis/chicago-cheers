@@ -25,8 +25,8 @@ final class RaceTracker: NSObject, ObservableObject {
     /// Called on the main thread as each mile marker is reached.
     var onMileReached: ((Int) -> Void)?
 
-    static let metresPerMile = 1609.344
-    static let finalMile = 26
+    nonisolated static let metresPerMile = 1609.344
+    nonisolated static let finalMile = 26
 
     private let manager = CLLocationManager()
     private var lastFix: CLLocation?

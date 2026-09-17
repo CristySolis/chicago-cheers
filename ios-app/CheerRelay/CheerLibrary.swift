@@ -1,61 +1,58 @@
 import Foundation
 import Combine
 
-/// The recordings waiting on disk, indexed by the mile they were claimed for.
+/// The cheers this phone is carrying, grouped by mile.
 ///
-/// Files live in the app's Documents folder so they can be added from Finder or
-/// the Files app without a rebuild — which matters because the recordings are
-/// gathered in the week before the race, long after the app is installed.
-///
-/// A file belongs to whichever mile its name starts with: "18.m4a",
-/// "18-mum.m4a" and "18 tete.wav" all play at mile 18. More than one file may
-/// claim the same mile, which happens once all 26 are taken and people start
-/// doubling up.
+/// Holds a `CheerSource` rather than reading files itself, so replacing the
+/// folder with the submission site's database later is a change of one
+/// initialiser argument.
+@MainActor
 final class CheerLibrary: ObservableObject {
 
-    @Published private(set) var byMile: [Int: [URL]] = [:]
+    @Published private(set) var cheers: [Cheer] = []
+    @Published private(set) var isLoading = false
+    @Published private(set) var problem: String?
 
-    private static let playableExtensions: Set<String> = [
-        "m4a", "mp3", "wav", "aac", "caf", "aiff", "mp4"
-    ]
+    private let source: CheerSource
 
-    static var documentsURL: URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    init(source: CheerSource = LocalFolderSource()) {
+        self.source = source
     }
 
-    init() {
-        reload()
+    var sourceDescription: String { source.describedAs }
+
+    var count: Int { cheers.count }
+
+    var claimedMiles: [Int] {
+        Array(Set(cheers.map(\.mile))).sorted()
     }
 
-    var count: Int { byMile.values.reduce(0) { $0 + $1.count } }
+    /// Cheers whose audio never made it onto the phone. Must be zero before the
+    /// start — each one is a supporter whose recording would simply not play.
+    var missingAudio: [Cheer] {
+        cheers.filter { !$0.isReadyForRace }
+    }
 
-    var claimedMiles: [Int] { byMile.keys.sorted() }
+    func cheers(forMile mile: Int) -> [Cheer] {
+        cheers.filter { $0.mile == mile }
+    }
 
+    /// Only ever hands back audio that is already on disk, so the race itself
+    /// never waits on a network.
     func recordings(forMile mile: Int) -> [URL] {
-        byMile[mile] ?? []
+        cheers(forMile: mile).compactMap(\.localURL)
     }
 
-    func reload() {
-        let contents = (try? FileManager.default.contentsOfDirectory(
-            at: Self.documentsURL,
-            includingPropertiesForKeys: nil
-        )) ?? []
+    func reload() async {
+        isLoading = true
+        defer { isLoading = false }
 
-        var found: [Int: [URL]] = [:]
-        for url in contents {
-            guard Self.playableExtensions.contains(url.pathExtension.lowercased()),
-                  let mile = Self.mile(fromFileName: url.lastPathComponent)
-            else { continue }
-            found[mile, default: []].append(url)
+        do {
+            let fetched = try await source.fetchCheers()
+            cheers = try await source.makeAvailableOffline(fetched)
+            problem = nil
+        } catch {
+            problem = "Couldn't load recordings: \(error.localizedDescription)"
         }
-
-        // Stable order so a doubled-up mile always plays in the same sequence.
-        byMile = found.mapValues { $0.sorted { $0.lastPathComponent < $1.lastPathComponent } }
-    }
-
-    private static func mile(fromFileName name: String) -> Int? {
-        let digits = name.prefix { $0.isNumber }
-        guard let mile = Int(digits), (1...RaceTracker.finalMile).contains(mile) else { return nil }
-        return mile
     }
 }

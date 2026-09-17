@@ -10,7 +10,7 @@ struct RaceView: View {
             VStack(spacing: 20) {
                 distance
 
-                if let message = tracker.problem ?? player.problem {
+                if let message = tracker.problem ?? library.problem ?? player.problem {
                     Text(message)
                         .foregroundColor(.red)
                         .font(.footnote)
@@ -31,10 +31,14 @@ struct RaceView: View {
             .navigationTitle("Chicago Cheer Squad")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Reload") { library.reload() }
+                    Button("Reload") {
+                        Task { await library.reload() }
+                    }
+                    .disabled(library.isLoading)
                 }
             }
-            .onAppear {
+            .task {
+                await library.reload()
                 let cheers = library
                 let sound = player
                 tracker.onMileReached = { mile in
@@ -86,9 +90,21 @@ struct RaceView: View {
 
     private var miles: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("\(library.count) recordings across \(library.claimedMiles.count) miles")
-                .font(.footnote)
-                .foregroundColor(.secondary)
+            HStack {
+                Text("\(library.count) recordings across \(library.claimedMiles.count) miles")
+                Spacer()
+                Text(library.sourceDescription)
+            }
+            .font(.footnote)
+            .foregroundColor(.secondary)
+
+            // Every one of these is a supporter whose recording would not play.
+            if !library.missingAudio.isEmpty {
+                Label("\(library.missingAudio.count) not downloaded yet",
+                      systemImage: "exclamationmark.triangle")
+                    .font(.footnote)
+                    .foregroundColor(.orange)
+            }
 
             List {
                 ForEach(library.claimedMiles, id: \.self) { mile in
@@ -98,9 +114,10 @@ struct RaceView: View {
                             .frame(width: 80, alignment: .leading)
 
                         VStack(alignment: .leading) {
-                            ForEach(library.recordings(forMile: mile), id: \.self) { url in
-                                Text(url.deletingPathExtension().lastPathComponent)
+                            ForEach(library.cheers(forMile: mile)) { cheer in
+                                Text(cheer.label)
                                     .font(.subheadline)
+                                    .foregroundColor(cheer.isReadyForRace ? .primary : .orange)
                             }
                         }
 
