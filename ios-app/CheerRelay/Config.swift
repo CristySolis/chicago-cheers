@@ -17,7 +17,7 @@ enum Config {
     // The published Google Sheet CSV URL (File > Share > Publish to web,
     // pick the response sheet, format CSV). Expected columns, in order:
     // Timestamp, Sender, Message
-    static let sheetCSVURL = URL(string: "https://docs.google.com/spreadsheets/d/e/PASTE_YOUR_PUBLISHED_ID_HERE/pub?output=csv")!
+    static let sheetCSVURL = URL(string: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQAWr2xb19HUSZA3SIWh_0h2bjYSiKAo0Iq6JhQy4lPENhrMwOar_Jv-fr5S_XcZ0LMjmqv-fYGIEnE/pub?gid=783748997&single=true&output=csv")!
 
     // How often to check the sheet for new rows.
     static let pollInterval: TimeInterval = 15
