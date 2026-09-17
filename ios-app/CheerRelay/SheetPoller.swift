@@ -1,10 +1,11 @@
 import Foundation
+import Combine
 
 /// Polls a published Google Sheet (as CSV) for new rows and reports any
 /// messages not seen before. Expects columns: Timestamp, Sender, Message
 /// (this is exactly what a Google Form's response sheet looks like with
 /// two short-answer questions, "Name" and "Message").
-final class SheetPoller {
+final class SheetPoller: ObservableObject {
 
     private(set) var seenIds = Set<String>()
     private var timer: Timer?

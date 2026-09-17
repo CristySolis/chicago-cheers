@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import ConnectIQ // Garmin Connect IQ Mobile SDK — add via CocoaPods `pod 'ConnectIQ'`
                  // or the framework from developer.garmin.com/connect-iq/sdk/
 
