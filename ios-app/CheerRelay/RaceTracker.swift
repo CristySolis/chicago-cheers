@@ -39,7 +39,10 @@ final class RaceTracker: NSObject, ObservableObject {
     override init() {
         super.init()
         manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyBest
+        // Ten metres, not Best. A cheer placed at mile 18 reads the same either
+        // way, and Best is materially hungrier over four and a half hours —
+        // battery is the real constraint here, not precision.
+        manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
         manager.activityType = .fitness
         // Without this iOS decides on its own that she has stopped moving and
         // silently ends updates — which on a four hour run is fatal.
