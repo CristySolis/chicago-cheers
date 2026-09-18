@@ -1,0 +1,17 @@
+# Vercel has no Poetry support. If it sees pyproject.toml it installs from that
+# alone, finds no dependencies in the standard [project] format, installs
+# nothing and does not fall back to requirements.txt. Hiding Poetry's files
+# makes it use requirements.txt, which export-requirements.sh keeps in step
+# with poetry.lock.
+pyproject.toml
+poetry.lock
+poetry.toml
+
+# Development only; nothing here runs in production.
+tests/
+.venv/
+*.sh
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.import_linter_cache/

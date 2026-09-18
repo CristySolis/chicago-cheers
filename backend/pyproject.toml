@@ -1,0 +1,99 @@
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
+# The core rules must never reach for a provider directly. That is what keeps
+# a move from Supabase and Vercel to Google Cloud down to replacing the
+# adapters and the wiring in config, instead of untangling the service.
+[tool.importlinter]
+include_external_packages = true
+root_package = "cheers"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "cheers.adapters",
+  "cheers.config",
+  "cheers.main",
+  "fastapi",
+  "httpx"
+]
+name = "Core rules don't depend on providers, wiring or HTTP"
+source_modules = [
+  "cheers.allocation",
+  "cheers.models",
+  "cheers.ports",
+  "cheers.service"
+]
+type = "forbidden"
+
+[[tool.importlinter.contracts]]
+forbidden_modules = [
+  "cheers.repository",
+  "cheers.service",
+  "psycopg"
+]
+name = "Seat ranking stays pure"
+source_modules = [
+  "cheers.allocation"
+]
+type = "forbidden"
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+extra_checks = true
+ignore_missing_imports = true
+local_partial_types = true
+no_implicit_optional = true
+no_implicit_reexport = true
+packages = [
+  "cheers",
+  "tests"
+]
+plugins = ["pydantic.mypy"]
+strict_equality = true
+strict_optional = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[tool.poetry]
+authors = []
+description = "Supporters claim a spot on a runner's course and record a cheer that plays when she reaches it."
+name = "cheers"
+packages = [{include = "cheers"}]
+version = "0.1.0"
+
+# Vercel doesn't read Poetry's format, so these are exported to
+# requirements.txt for it: see export-requirements.sh.
+[tool.poetry.dependencies]
+fastapi = "0.141.1"
+httpx = "0.28.1"
+psycopg = {version = "3.3.5", extras = ["binary"]}
+python = "~3.12"
+
+[tool.poetry.group.dev.dependencies]
+black = "26.5.1"
+import-linter = "2.15"
+isort = "9.0.1"
+mypy = "2.3.1"
+pytest = "9.1.1"
+uvicorn = "0.53.0"
+
+[tool.pytest.ini_options]
+# The tests under tests/api need a running local Supabase; run them with
+# integration-tests.sh. Everything else runs anywhere.
+addopts = "--ignore tests/api"
+testpaths = [
+  "tests"
+]
