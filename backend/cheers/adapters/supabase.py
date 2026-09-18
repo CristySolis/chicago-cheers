@@ -10,6 +10,8 @@ a running stack.
 
 import httpx
 
+from cheers.ports import Session
+
 
 class SupabaseRecordingStore:
 
@@ -74,3 +76,35 @@ class SupabaseIdentityVerifier:
             return None
         runner = response.json().get("id")
         return runner if isinstance(runner, str) else None
+
+
+class SupabaseRunnerSignIn:
+
+    def __init__(self, base_url: str, anon_key: str, http: httpx.Client):
+        self._token_endpoint = f"{base_url.rstrip('/')}/auth/v1/token"
+        self._anon_key = anon_key
+        self._http = http
+
+    def sign_in(self, email: str, password: str) -> Session | None:
+        # A wrong password answers 400 invalid_credentials, which is an
+        # expected outcome here rather than a failure.
+        return self._session("password", {"email": email, "password": password})
+
+    def refresh(self, refresh_token: str) -> Session | None:
+        return self._session("refresh_token", {"refresh_token": refresh_token})
+
+    def _session(self, grant_type: str, body: dict[str, str]) -> Session | None:
+        response = self._http.post(
+            self._token_endpoint,
+            params={"grant_type": grant_type},
+            headers={"apikey": self._anon_key},
+            json=body,
+        )
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        return Session(
+            access_token=str(data["access_token"]),
+            refresh_token=str(data["refresh_token"]),
+            expires_in=int(data["expires_in"]),
+        )

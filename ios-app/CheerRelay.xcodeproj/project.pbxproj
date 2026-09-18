@@ -327,6 +327,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = CF33A3B6881B4BB8CA1C6059 /* Pods-CheerRelay.debug.xcconfig */;
 			buildSettings = {
+				CHEERS_API_URL = "http://127.0.0.1:8000";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
 				CURRENT_PROJECT_VERSION = 1;
@@ -373,6 +374,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 264901A5F64108CBE7349470 /* Pods-CheerRelay.release.xcconfig */;
 			buildSettings = {
+				CHEERS_API_URL = "http://127.0.0.1:8000";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
 				CURRENT_PROJECT_VERSION = 1;

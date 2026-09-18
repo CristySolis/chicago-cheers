@@ -2,8 +2,10 @@ import SwiftUI
 
 struct RaceView: View {
     @StateObject private var tracker = RaceTracker()
-    @StateObject private var library = CheerLibrary()
+    @StateObject private var library = CheerLibrary(source: SyncedCheerSource())
     @StateObject private var player = CheerPlayer()
+    @StateObject private var sync = CheerSync(api: ApiClient(baseURL: AppConfig.apiBaseURL))
+    @State private var showingSignIn = false
 
     var body: some View {
         NavigationView {
@@ -31,20 +33,81 @@ struct RaceView: View {
             .navigationTitle("Chicago Cheer Squad")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Reload") {
-                        Task { await library.reload() }
+                    if sync.isSignedIn {
+                        // Never during the race: once Start is pressed, the app
+                        // runs only on what's already on the phone.
+                        Button("Sync") { Task { await runSync() } }
+                            .disabled(tracker.isRunning || isSyncing)
+                    } else {
+                        Button("Sign in") { showingSignIn = true }
                     }
-                    .disabled(library.isLoading)
                 }
+                if sync.isSignedIn {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Sign out") { sync.signOut() }
+                            .disabled(tracker.isRunning || isSyncing)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingSignIn, onDismiss: {
+                if sync.isSignedIn { Task { await runSync() } }
+            }) {
+                SignInView(sync: sync)
             }
             .task {
                 await library.reload()
                 let cheers = library
                 let sound = player
                 tracker.onMileReached = { mile in
-                    sound.play(cheers.recordings(forMile: mile))
+                    sound.play(cheers.readyCheers(forMile: mile))
                 }
             }
+        }
+    }
+
+    private var isSyncing: Bool {
+        if case .syncing = sync.state { return true }
+        return false
+    }
+
+    private var isFailure: Bool {
+        switch sync.state {
+        case .failed: return true
+        case .finished(_, let failed): return failed > 0
+        default: return false
+        }
+    }
+
+    /// The next mile that actually holds a cheer — not simply the next mile
+    /// marker, most of which will be empty.
+    private var nextCheer: String? {
+        guard library.count > 0 else { return "No cheers on the phone yet" }
+        guard let mile = library.claimedMiles.first(where: { !tracker.hasReached(mile: $0) }) else {
+            return "Every cheer has played"
+        }
+        return "Next cheer: \(Course.label(mile))"
+    }
+
+    private func runSync() async {
+        await sync.sync()
+        await library.reload()
+    }
+
+    private var syncStatus: String? {
+        switch sync.state {
+        case .idle:
+            if let last = sync.lastSynced {
+                return "Last synced \(last.formatted(date: .abbreviated, time: .shortened))"
+            }
+            return sync.isSignedIn ? "Not synced yet" : nil
+        case .syncing(let done, let total):
+            return total == 0 ? "Syncing…" : "Downloading \(done + 1) of \(total)…"
+        case .finished(let count, let failed):
+            return failed == 0
+                ? "\(count) recordings synced"
+                : "\(count) synced, \(failed) failed — tap Sync again"
+        case .failed(let message):
+            return message
         }
     }
 
@@ -63,10 +126,8 @@ struct RaceView: View {
                     .foregroundColor(.orange)
             }
 
-            if let next = tracker.nextMile {
-                Text(library.recordings(forMile: next).isEmpty
-                     ? "Next cheer: none placed yet"
-                     : "Next cheer: \(Course.label(next))")
+            if let nextCheer {
+                Text(nextCheer)
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
@@ -97,6 +158,12 @@ struct RaceView: View {
             }
             .font(.footnote)
             .foregroundColor(.secondary)
+
+            if let syncStatus {
+                Text(syncStatus)
+                    .font(.footnote)
+                    .foregroundColor(isFailure ? .red : .secondary)
+            }
 
             // Every one of these is a supporter whose recording would not play.
             if !library.missingAudio.isEmpty {
@@ -130,7 +197,7 @@ struct RaceView: View {
                             // Lets a placement be checked on the sofa rather
                             // than discovering it is wrong at mile 18.
                             Button("Preview") {
-                                player.play(library.recordings(forMile: mile))
+                                player.play(library.readyCheers(forMile: mile))
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)

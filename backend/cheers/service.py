@@ -10,7 +10,7 @@ from decimal import Decimal, InvalidOperation
 from uuid import UUID
 
 from cheers.allocation import rank_seats
-from cheers.ports import IdentityVerifier, RecordingStore
+from cheers.ports import IdentityVerifier, RecordingStore, RunnerSignIn, Session
 from cheers.repository import Repository, SeatTaken
 
 # How long a claim holds its seat while the recording uploads. Long enough for
@@ -45,6 +45,12 @@ class RecordingMissing(CheerError): ...
 
 
 class NotSignedIn(CheerError): ...
+
+
+class BadCredentials(CheerError): ...
+
+
+class SessionExpired(CheerError): ...
 
 
 @dataclass(frozen=True)
@@ -89,10 +95,12 @@ class CheerService:
         repository: Repository,
         recordings: RecordingStore,
         identity: IdentityVerifier,
+        sign_in: RunnerSignIn,
     ):
         self._repo = repository
         self._recordings = recordings
         self._identity = identity
+        self._sign_in = sign_in
 
     # --- supporters ------------------------------------------------------------
 
@@ -160,6 +168,18 @@ class CheerService:
         return cheer.slot
 
     # --- the runner ------------------------------------------------------------
+
+    def sign_in(self, email: str, password: str) -> Session:
+        session = self._sign_in.sign_in(email.strip(), password)
+        if session is None:
+            raise BadCredentials
+        return session
+
+    def refresh(self, refresh_token: str) -> Session:
+        session = self._sign_in.refresh(refresh_token)
+        if session is None:
+            raise SessionExpired
+        return session
 
     def runner_events(self, token: str | None) -> list[RunnerEvent]:
         runner = self._runner(token)

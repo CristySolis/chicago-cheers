@@ -32,6 +32,18 @@
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	<!-- The API to sync from, set per build by CHEERS_API_URL: the local
+	     server while developing, the deployed one at go-live. -->
+	<key>CheersAPIURL</key>
+	<string>$(CHEERS_API_URL)</string>
+	<!-- Plain http is refused by iOS except to local addresses, which this
+	     allows so the app can sync from the API running on this Mac. The
+	     deployed API is https and needs no exception. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>gcm-ciq</string>

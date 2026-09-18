@@ -13,16 +13,21 @@ final class CheerPlayer: NSObject, ObservableObject {
     @Published private(set) var problem: String?
 
     private var player: AVAudioPlayer?
-    private var queue: [URL] = []
+    private var queue: [(audio: URL, sender: String)] = []
 
     override init() {
         super.init()
         configureSession(ducking: false)
     }
 
-    func play(_ urls: [URL]) {
-        guard !urls.isEmpty else { return }
-        queue.append(contentsOf: urls)
+    /// Takes cheers rather than bare files so the screen can say who is
+    /// speaking: synced recordings are named by id, not by sender.
+    func play(_ cheers: [Cheer]) {
+        let playable = cheers.compactMap { cheer in
+            cheer.localURL.map { (audio: $0, sender: cheer.label) }
+        }
+        guard !playable.isEmpty else { return }
+        queue.append(contentsOf: playable)
         if player == nil {
             playNext()
         }
@@ -34,19 +39,19 @@ final class CheerPlayer: NSObject, ObservableObject {
             return
         }
 
-        let url = queue.removeFirst()
+        let next = queue.removeFirst()
         do {
             configureSession(ducking: true)
-            let next = try AVAudioPlayer(contentsOf: url)
-            next.delegate = self
-            next.prepareToPlay()
-            next.play()
-            player = next
-            nowPlaying = url.deletingPathExtension().lastPathComponent
+            let audio = try AVAudioPlayer(contentsOf: next.audio)
+            audio.delegate = self
+            audio.prepareToPlay()
+            audio.play()
+            player = audio
+            nowPlaying = next.sender
             problem = nil
         } catch {
             // One unreadable file must not stop the rest of the race.
-            problem = "Couldn't play \(url.lastPathComponent): \(error.localizedDescription)"
+            problem = "Couldn't play \(next.sender)'s cheer: \(error.localizedDescription)"
             playNext()
         }
     }

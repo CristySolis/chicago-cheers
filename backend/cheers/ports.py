@@ -7,6 +7,7 @@ changes. The database needs no such seam: it's plain Postgres, which Cloud SQL
 also is.
 """
 
+from dataclasses import dataclass
 from typing import Protocol
 
 
@@ -32,4 +33,28 @@ class IdentityVerifier(Protocol):
 
     def runner_id(self, token: str) -> str | None:
         """The runner's id, or None if the token isn't valid."""
+        ...
+
+
+@dataclass(frozen=True)
+class Session:
+    access_token: str
+    refresh_token: str
+    expires_in: int  # seconds until access_token stops working
+
+
+class RunnerSignIn(Protocol):
+    """Signs the runner in on her phone's behalf, so the phone talks only to
+    this API and never to the login provider directly."""
+
+    def sign_in(self, email: str, password: str) -> Session | None:
+        """A new session, or None if the email and password don't match."""
+        ...
+
+    def refresh(self, refresh_token: str) -> Session | None:
+        """A fresh session, or None if the refresh token is no longer valid.
+
+        The returned refresh token replaces the one passed in; providers may
+        revoke the whole session if a replaced token is ever used again.
+        """
         ...
