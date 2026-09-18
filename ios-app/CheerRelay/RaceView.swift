@@ -78,6 +78,16 @@ struct RaceView: View {
         }
     }
 
+    /// The next mile that actually holds a cheer — not simply the next mile
+    /// marker, most of which will be empty.
+    private var nextCheer: String? {
+        guard library.count > 0 else { return "No cheers on the phone yet" }
+        guard let mile = library.claimedMiles.first(where: { !tracker.hasReached(mile: $0) }) else {
+            return "Every cheer has played"
+        }
+        return "Next cheer: \(Course.label(mile))"
+    }
+
     private func runSync() async {
         await sync.sync()
         await library.reload()
@@ -116,10 +126,8 @@ struct RaceView: View {
                     .foregroundColor(.orange)
             }
 
-            if let next = tracker.nextMile {
-                Text(library.readyCheers(forMile: next).isEmpty
-                     ? "Next cheer: none placed yet"
-                     : "Next cheer: \(Course.label(next))")
+            if let nextCheer {
+                Text(nextCheer)
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
