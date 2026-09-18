@@ -37,10 +37,10 @@ final class CheerLibrary: ObservableObject {
         cheers.filter { $0.mile == mile }
     }
 
-    /// Only ever hands back audio that is already on disk, so the race itself
-    /// never waits on a network.
-    func recordings(forMile mile: Double) -> [URL] {
-        cheers(forMile: mile).compactMap(\.localURL)
+    /// Only ever hands back cheers whose audio is already on disk, so the race
+    /// itself never waits on a network.
+    func readyCheers(forMile mile: Double) -> [Cheer] {
+        cheers(forMile: mile).filter(\.isReadyForRace)
     }
 
     func reload() async {
