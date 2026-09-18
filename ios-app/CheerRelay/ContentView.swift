@@ -3,13 +3,14 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var relay: WatchRelay
     @StateObject private var poller = SheetPoller()
+    @StateObject private var speaker = CheerSpeaker()
 
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: 16) {
                 statusRow
 
-                if let error = relay.lastSendError {
+                if let error = speaker.audioError ?? relay.lastSendError {
                     Text(error).foregroundColor(.red).font(.footnote)
                 }
 
@@ -20,9 +21,10 @@ struct ContentView: View {
                     }
                 }
 
-                Button("Send test cheer") {
+                Button("Speak test cheer") {
                     let test = CheerMessage(id: UUID().uuidString, sender: "Test",
                                              text: "GO CRISTY GO! 🎉", timestamp: Date())
+                    speaker.speak(test)
                     relay.send(test)
                     poller.received.append(test)
                 }
@@ -32,9 +34,15 @@ struct ContentView: View {
             .navigationTitle("Chicago Cheer Squad")
             .onAppear {
                 relay.initializeSDK()
-                let watch = relay // capture the object, not this view struct
+                speaker.start()
+                // capture the objects, not this view struct
+                let watch = relay
+                let voice = speaker
                 poller.onNewMessages = { fresh in
-                    fresh.forEach(watch.send)
+                    for msg in fresh {
+                        voice.speak(msg)
+                        watch.send(msg)
+                    }
                 }
                 poller.start()
             }
