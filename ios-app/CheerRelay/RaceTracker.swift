@@ -128,17 +128,45 @@ final class RaceTracker: NSObject, ObservableObject {
         defer { lastFix = fix }
         guard let previous = lastFix else { return }
 
-        let step = fix.distance(from: previous)
         let elapsed = fix.timestamp.timeIntervalSince(previous.timestamp)
         guard elapsed > 0 else { return }
 
-        // Under a metre is GPS jitter while standing; over 8 m/s is a bad fix,
-        // being faster than any marathon pace by a wide margin.
-        guard step > 1, step / elapsed < 8 else { return }
+        let step = Self.distance(from: previous, to: fix, over: elapsed)
+
+        // Over 8 m/s is a bad fix, faster than any marathon pace by a wide margin.
+        guard step / elapsed < 8 else { return }
 
         metres += step
         announceMilesPassed()
         persist()
+    }
+
+    /// Joining the dots between positions overcounts. Every fix is a few metres
+    /// off in a direction that wanders, so the traced path zigzags, and a
+    /// zigzag is longer than the line actually run. The first field test read
+    /// about 6% long — 200 m by mile 2, which would be 1.6 miles by the finish
+    /// — and simulating noisier GPS, like the Loop's towers, pushes that past
+    /// 20%.
+    ///
+    /// The receiver's Doppler speed doesn't wobble that way (within 0.2% in the
+    /// same simulation), so distance is speed integrated over time, falling
+    /// back to position only when speed isn't reported.
+    private static func distance(from previous: CLLocation,
+                                 to fix: CLLocation,
+                                 over elapsed: TimeInterval) -> Double {
+        switch (hasUsableSpeed(previous), hasUsableSpeed(fix)) {
+        case (true, true):
+            return (previous.speed + fix.speed) / 2 * elapsed
+        case (_, true):
+            return fix.speed * elapsed
+        default:
+            let step = fix.distance(from: previous)
+            return step > 1 ? step : 0 // under a metre is jitter while standing
+        }
+    }
+
+    private static func hasUsableSpeed(_ fix: CLLocation) -> Bool {
+        fix.speed >= 0 && fix.speedAccuracy >= 0
     }
 
     private func announceMilesPassed() {
