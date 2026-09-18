@@ -288,3 +288,13 @@ def test_a_lapsed_claim_no_longer_counts_as_taken(
     c = claimed(api, event, 14)
     age_claim(c["cheer_id"], 20)
     assert api.get(f"/api/events/{event['share_code']}").json()["occupancy"] == []
+
+
+# --- the sender page ------------------------------------------------------------------
+
+
+def test_the_share_link_opens_the_sender_page(api: TestClient) -> None:
+    page = api.get("/cheer/any-code")
+    assert page.status_code == 200
+    assert page.headers["content-type"].startswith("text/html")
+    assert "/api/events/" in page.text
