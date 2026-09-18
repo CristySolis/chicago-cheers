@@ -29,9 +29,10 @@ protocol CheerSource {
 
 /// Reads whatever audio has been dropped into the app's Documents folder.
 ///
-/// A file belongs to whichever mile its name begins with, so "18.m4a",
-/// "18-mum.m4a" and "18 tete.wav" all play at mile 18. Several files may share
-/// a mile, which is what happens once all 26 are claimed and people double up.
+/// A file belongs to whichever slot its name begins with: "18-mum.m4a" plays at
+/// mile 18, "20.5 tete.wav" at mile 20.5. Half miles only exist after mile 13,
+/// so "7.5-x" is ignored. Several files may share a slot, which is what happens
+/// once every slot is claimed and people double up.
 nonisolated struct LocalFolderSource: CheerSource {
 
     var describedAs: String { "Files on this phone" }
@@ -67,16 +68,19 @@ nonisolated struct LocalFolderSource: CheerSource {
     /// Already local by definition.
     func makeAvailableOffline(_ cheers: [Cheer]) async throws -> [Cheer] { cheers }
 
-    private static func mile(fromFileName name: String) -> Int? {
-        let digits = name.prefix { $0.isNumber }
-        guard let mile = Int(digits), (1...RaceTracker.finalMile).contains(mile) else { return nil }
+    /// Reads the number from the name without its extension — otherwise the
+    /// dot in "18.m4a" looks like part of "18.".
+    private static func mile(fromFileName name: String) -> Double? {
+        let stem = (name as NSString).deletingPathExtension
+        let number = stem.prefix { $0.isNumber || $0 == "." }
+        guard let mile = Double(number), Course.isSlot(mile) else { return nil }
         return mile
     }
 
     /// "18-mum.m4a" gives "mum"; a bare "18.m4a" gives nothing.
     private static func sender(fromFileName name: String) -> String? {
         let stem = (name as NSString).deletingPathExtension
-        let remainder = stem.drop { $0.isNumber }
+        let remainder = stem.drop { $0.isNumber || $0 == "." }
             .drop { $0 == "-" || $0 == "_" || $0 == " " }
         let trimmed = remainder.trimmingCharacters(in: .whitespaces)
         return trimmed.isEmpty ? nil : trimmed

@@ -4,7 +4,9 @@ import Foundation
 struct Cheer: Identifiable, Equatable {
 
     let id: String
-    let mile: Int
+
+    /// A slot on the course: whole miles, or half miles after mile 13.
+    let mile: Double
 
     /// Who recorded it. Unknown for loose files, which only carry a filename.
     let sender: String?

@@ -66,7 +66,7 @@ struct RaceView: View {
             if let next = tracker.nextMile {
                 Text(library.recordings(forMile: next).isEmpty
                      ? "Next cheer: none placed yet"
-                     : "Next cheer at mile \(next)")
+                     : "Next cheer: \(Course.label(next))")
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
@@ -91,7 +91,7 @@ struct RaceView: View {
     private var miles: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("\(library.count) recordings across \(library.claimedMiles.count) miles")
+                Text("\(library.count) recordings, \(library.claimedMiles.count) spots")
                 Spacer()
                 Text(library.sourceDescription)
             }
@@ -109,9 +109,9 @@ struct RaceView: View {
             List {
                 ForEach(library.claimedMiles, id: \.self) { mile in
                     HStack {
-                        Text("Mile \(mile)")
+                        Text(Course.label(mile))
                             .font(.headline)
-                            .frame(width: 80, alignment: .leading)
+                            .frame(width: 100, alignment: .leading)
 
                         VStack(alignment: .leading) {
                             ForEach(library.cheers(forMile: mile)) { cheer in

@@ -22,15 +22,12 @@ final class RaceTracker: NSObject, ObservableObject {
     /// mistaken for "running normally".
     @Published private(set) var hasFix = false
 
-    /// Called on the main thread as each mile marker is reached.
-    var onMileReached: ((Int) -> Void)?
-
-    nonisolated static let metresPerMile = 1609.344
-    nonisolated static let finalMile = 26
+    /// Called on the main thread as each course slot is reached.
+    var onMileReached: ((Double) -> Void)?
 
     private let manager = CLLocationManager()
     private var lastFix: CLLocation?
-    private var reachedMiles: Set<Int> = []
+    private var reachedMiles: Set<Double> = []
 
     private enum Key {
         static let metres = "race.metres"
@@ -38,7 +35,7 @@ final class RaceTracker: NSObject, ObservableObject {
         static let running = "race.isRunning"
     }
 
-    var milesCovered: Double { metres / Self.metresPerMile }
+    var milesCovered: Double { metres / Course.metresPerMile }
 
     override init() {
         super.init()
@@ -90,10 +87,10 @@ final class RaceTracker: NSObject, ObservableObject {
         persist()
     }
 
-    func hasReached(mile: Int) -> Bool { reachedMiles.contains(mile) }
+    func hasReached(mile: Double) -> Bool { reachedMiles.contains(mile) }
 
-    var nextMile: Int? {
-        (1...Self.finalMile).first { !reachedMiles.contains($0) }
+    var nextMile: Double? {
+        Course.slots.first { !reachedMiles.contains($0) }
     }
 
     // MARK: - Persistence
@@ -108,7 +105,7 @@ final class RaceTracker: NSObject, ObservableObject {
     private func restore() {
         let defaults = UserDefaults.standard
         metres = defaults.double(forKey: Key.metres)
-        reachedMiles = Set(defaults.array(forKey: Key.reached) as? [Int] ?? [])
+        reachedMiles = Set(defaults.array(forKey: Key.reached) as? [Double] ?? [])
 
         // Resume automatically after a crash rather than waiting to be noticed.
         if defaults.bool(forKey: Key.running) {
@@ -170,12 +167,10 @@ final class RaceTracker: NSObject, ObservableObject {
     }
 
     private func announceMilesPassed() {
-        let covered = Int(milesCovered)
-        guard covered >= 1 else { return }
-
-        for mile in 1...min(covered, Self.finalMile) where !reachedMiles.contains(mile) {
-            reachedMiles.insert(mile)
-            onMileReached?(mile)
+        let covered = milesCovered
+        for slot in Course.slots where slot <= covered && !reachedMiles.contains(slot) {
+            reachedMiles.insert(slot)
+            onMileReached?(slot)
         }
     }
 }

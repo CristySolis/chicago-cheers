@@ -23,7 +23,7 @@ final class CheerLibrary: ObservableObject {
 
     var count: Int { cheers.count }
 
-    var claimedMiles: [Int] {
+    var claimedMiles: [Double] {
         Array(Set(cheers.map(\.mile))).sorted()
     }
 
@@ -33,13 +33,13 @@ final class CheerLibrary: ObservableObject {
         cheers.filter { !$0.isReadyForRace }
     }
 
-    func cheers(forMile mile: Int) -> [Cheer] {
+    func cheers(forMile mile: Double) -> [Cheer] {
         cheers.filter { $0.mile == mile }
     }
 
     /// Only ever hands back audio that is already on disk, so the race itself
     /// never waits on a network.
-    func recordings(forMile mile: Int) -> [URL] {
+    func recordings(forMile mile: Double) -> [URL] {
         cheers(forMile: mile).compactMap(\.localURL)
     }
 
