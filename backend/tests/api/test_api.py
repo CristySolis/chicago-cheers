@@ -3,26 +3,38 @@ and the phone use, against a real local Supabase."""
 
 from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal as D
+from typing import Any
 
 import httpx
+from fastapi.testclient import TestClient
 
-from .conftest import ADMIN, CHICAGO, LOCAL, age_claim, wav
+from .conftest import CHICAGO, LOCAL, EventRow, MakeEvent, Runner, age_claim, wav
+
+Json = dict[str, Any]
 
 
-def claim(api, event, preferred, sender="someone"):
-    return api.post(
+def claim(
+    api: TestClient, event: EventRow, preferred: object, sender: str = "someone"
+) -> httpx.Response:
+    response: httpx.Response = api.post(
         f"/api/events/{event['share_code']}/claims",
         json={"preferred": str(preferred), "sender": sender},
     )
+    return response
 
 
-def claimed(api, event, preferred, sender="someone") -> dict:
+def claimed(
+    api: TestClient, event: EventRow, preferred: object, sender: str = "someone"
+) -> Json:
     response = claim(api, event, preferred, sender)
     assert response.status_code == 200, response.text
-    return response.json()
+    body: Json = response.json()
+    return body
 
 
-def cheer(api, web, event, preferred, sender) -> dict:
+def cheer(
+    api: TestClient, web: httpx.Client, event: EventRow, preferred: object, sender: str
+) -> Json:
     """A complete cheer, the way the page makes one: claim, upload, finish."""
     c = claimed(api, event, preferred, sender)
     put = web.put(c["upload_url"], content=wav(), headers={"Content-Type": "audio/wav"})
@@ -32,51 +44,64 @@ def cheer(api, web, event, preferred, sender) -> dict:
     return c
 
 
-def spot(c) -> D:
+def spot(c: Json) -> D:
     return D(str(c["slot"]))
 
 
-def runner_cheers(api, runner, event):
-    return api.get(
+def runner_cheers(api: TestClient, runner: Runner, event: EventRow) -> httpx.Response:
+    response: httpx.Response = api.get(
         f"/api/runner/events/{event['id']}/cheers",
         headers={"Authorization": f"Bearer {runner[1]}"},
     )
+    return response
 
 
 # --- where a claim lands ----------------------------------------------------------
 
 
-def test_a_free_spot_goes_to_whoever_asks_for_it(api, make_event):
+def test_a_free_spot_goes_to_whoever_asks_for_it(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     assert spot(claimed(api, make_event(), 18)) == 18
 
 
-def test_a_taken_spot_slides_to_the_next_free_one_after_it(api, make_event):
+def test_a_taken_spot_slides_to_the_next_free_one_after_it(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     event = make_event()
     claimed(api, event, 18)
     assert spot(claimed(api, event, 18)) == D("18.5")
 
 
-def test_with_nothing_free_after_it_the_nearest_before_is_used(api, make_event):
+def test_with_nothing_free_after_it_the_nearest_before_is_used(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     event = make_event()
     claimed(api, event, 26)
     assert spot(claimed(api, event, 26)) == D("25.5")
 
 
-def test_nobody_doubles_up_while_any_spot_is_free(api, make_event):
+def test_nobody_doubles_up_while_any_spot_is_free(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     event = make_event()
     for s in CHICAGO[1:]:
         claimed(api, event, s)
     assert spot(claimed(api, event, 20)) == 1
 
 
-def test_once_every_spot_is_held_the_next_doubles_up_where_it_asked(api, make_event):
+def test_once_every_spot_is_held_the_next_doubles_up_where_it_asked(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     event = make_event()
     for s in CHICAGO:
         claimed(api, event, s)
     assert spot(claimed(api, event, 20)) == 20
 
 
-def test_simultaneous_claims_on_one_spot_never_share_a_seat(api, make_event):
+def test_simultaneous_claims_on_one_spot_never_share_a_seat(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     event = make_event()
     with ThreadPoolExecutor(max_workers=25) as pool:
         responses = list(
@@ -89,7 +114,9 @@ def test_simultaneous_claims_on_one_spot_never_share_a_seat(api, make_event):
     assert D(20) in spots
 
 
-def test_a_course_takes_two_people_per_spot_and_no_more(api, make_event):
+def test_a_course_takes_two_people_per_spot_and_no_more(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     event = make_event()
     for s in CHICAGO * 2:
         claimed(api, event, s)
@@ -98,19 +125,25 @@ def test_a_course_takes_two_people_per_spot_and_no_more(api, make_event):
     assert "taken" in refused.json()["error"]
 
 
-def test_a_spot_that_isnt_on_the_course_is_refused(api, make_event):
+def test_a_spot_that_isnt_on_the_course_is_refused(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     assert claim(api, make_event(), "7.5").status_code == 422
 
 
-def test_a_blank_name_is_refused(api, make_event):
+def test_a_blank_name_is_refused(api: TestClient, make_event: MakeEvent) -> None:
     assert claim(api, make_event(), 5, "   ").status_code == 422
 
 
-def test_closed_events_refuse_new_cheers(api, make_event):
+def test_closed_events_refuse_new_cheers(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     assert claim(api, make_event(submissions_open=False), 5).status_code == 409
 
 
-def test_an_abandoned_claim_frees_its_spot_after_the_upload_window(api, make_event):
+def test_an_abandoned_claim_frees_its_spot_after_the_upload_window(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     event = make_event()
     abandoned = claimed(api, event, 10)
     age_claim(abandoned["cheer_id"], 20)
@@ -121,22 +154,24 @@ def test_an_abandoned_claim_frees_its_spot_after_the_upload_window(api, make_eve
 
 
 def test_supporters_see_how_full_each_spot_is_but_never_who_is_in_it(
-    api, web, make_event
-):
+    api: TestClient, web: httpx.Client, make_event: MakeEvent
+) -> None:
     event = make_event()
     cheer(api, web, event, 18, "Mum")
     cheer(api, web, event, 20, "Tete")
 
     body = api.get(f"/api/events/{event['share_code']}").json()
     assert [(D(str(o["slot"])), o["cheers"]) for o in body["occupancy"]] == [
-        (18, 1),
-        (20, 1),
+        (D(18), 1),
+        (D(20), 1),
     ]
     assert "Mum" not in str(body) and "Tete" not in str(body)
     assert "owner_id" not in body
 
 
-def test_supabases_own_api_cant_be_used_to_go_around_the_rules(make_event):
+def test_supabases_own_api_cant_be_used_to_go_around_the_rules(
+    make_event: MakeEvent,
+) -> None:
     make_event()
     direct = httpx.get(
         f"{LOCAL['API_URL']}/rest/v1/cheers?select=*",
@@ -149,12 +184,12 @@ def test_supabases_own_api_cant_be_used_to_go_around_the_rules(make_event):
 
 
 def test_a_runner_sees_her_cheers_with_names_and_nobody_elses(
-    api,
-    web,
-    make_event,
-    her,
-    other_runner,
-):
+    api: TestClient,
+    web: httpx.Client,
+    make_event: MakeEvent,
+    her: Runner,
+    other_runner: Runner,
+) -> None:
     event = make_event()
     cheer(api, web, event, 18, "Mum")
 
@@ -165,7 +200,9 @@ def test_a_runner_sees_her_cheers_with_names_and_nobody_elses(
     assert api.get(f"/api/runner/events/{event['id']}/cheers").status_code == 401
 
 
-def test_only_finished_cheers_reach_the_runner(api, web, make_event, her):
+def test_only_finished_cheers_reach_the_runner(
+    api: TestClient, web: httpx.Client, make_event: MakeEvent, her: Runner
+) -> None:
     event = make_event()
     cheer(api, web, event, 18, "Mum")
     claimed(api, event, 20, "Still recording")
@@ -175,7 +212,9 @@ def test_only_finished_cheers_reach_the_runner(api, web, make_event, her):
 # --- recordings -----------------------------------------------------------------------
 
 
-def test_an_upload_link_only_works_for_its_own_claim(api, web, make_event):
+def test_an_upload_link_only_works_for_its_own_claim(
+    api: TestClient, web: httpx.Client, make_event: MakeEvent
+) -> None:
     event = make_event()
     c = claimed(api, event, 12)
     elsewhere = c["upload_url"].replace(
@@ -185,7 +224,9 @@ def test_an_upload_link_only_works_for_its_own_claim(api, web, make_event):
     assert stray.status_code >= 400, "uploaded somewhere the link wasn't for"
 
 
-def test_a_finished_recording_cant_be_replaced(api, web, make_event):
+def test_a_finished_recording_cant_be_replaced(
+    api: TestClient, web: httpx.Client, make_event: MakeEvent
+) -> None:
     event = make_event()
     c = cheer(api, web, event, 12, "Mum")
     again = web.put(
@@ -194,7 +235,9 @@ def test_a_finished_recording_cant_be_replaced(api, web, make_event):
     assert again.status_code >= 400, "overwrote a finished recording"
 
 
-def test_only_audio_can_be_uploaded(api, web, make_event):
+def test_only_audio_can_be_uploaded(
+    api: TestClient, web: httpx.Client, make_event: MakeEvent
+) -> None:
     c = claimed(api, make_event(), 12)
     text = web.put(
         c["upload_url"], content=b"not audio", headers={"Content-Type": "text/plain"}
@@ -202,12 +245,16 @@ def test_only_audio_can_be_uploaded(api, web, make_event):
     assert text.status_code >= 400
 
 
-def test_a_claim_cant_be_finished_without_its_recording(api, make_event):
+def test_a_claim_cant_be_finished_without_its_recording(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     c = claimed(api, make_event(), 12)
     assert api.post(f"/api/claims/{c['cheer_id']}/complete").status_code == 409
 
 
-def test_only_the_events_runner_can_listen(api, web, make_event, her, other_runner):
+def test_only_the_events_runner_can_listen(
+    api: TestClient, web: httpx.Client, make_event: MakeEvent, her: Runner
+) -> None:
     event = make_event()
     cheer(api, web, event, 12, "Mum")
 
@@ -222,7 +269,9 @@ def test_only_the_events_runner_can_listen(api, web, make_event, her, other_runn
     assert unsigned.status_code >= 400, "played a recording without a signed link"
 
 
-def test_a_lapsed_claim_no_longer_counts_as_taken(api, make_event):
+def test_a_lapsed_claim_no_longer_counts_as_taken(
+    api: TestClient, make_event: MakeEvent
+) -> None:
     event = make_event()
     c = claimed(api, event, 14)
     age_claim(c["cheer_id"], 20)

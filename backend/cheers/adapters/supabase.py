@@ -72,4 +72,5 @@ class SupabaseIdentityVerifier:
         )
         if response.status_code != 200:
             return None
-        return response.json().get("id")
+        runner = response.json().get("id")
+        return runner if isinstance(runner, str) else None

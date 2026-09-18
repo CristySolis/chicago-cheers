@@ -51,7 +51,7 @@ class Repository:
             )
             return cur.fetchall()
 
-    def _one_event(self, where: str, args: tuple) -> Event | None:
+    def _one_event(self, where: str, args: tuple[object, ...]) -> Event | None:
         with self._connect() as conn, conn.cursor(row_factory=class_row(Event)) as cur:
             cur.execute(f"select {_EVENT_COLUMNS} from events where {where}", args)
             return cur.fetchone()
@@ -88,7 +88,9 @@ class Repository:
                     " values (%s, %s, %s, %s) returning id",
                     (event_id, slot, seat, sender),
                 ).fetchone()
-            return row[0]
+            assert row is not None, "insert ... returning produced no row"
+            cheer_id: UUID = row[0]
+            return cheer_id
         except psycopg.errors.UniqueViolation as e:
             if e.diag.constraint_name == "one_person_per_seat":
                 raise SeatTaken from e
@@ -129,7 +131,7 @@ class Repository:
             )
             return cur.fetchall()
 
-    def _one_cheer(self, where: str, args: tuple) -> Cheer | None:
+    def _one_cheer(self, where: str, args: tuple[object, ...]) -> Cheer | None:
         with self._connect() as conn, conn.cursor(row_factory=class_row(Cheer)) as cur:
             cur.execute(f"select {_CHEER_COLUMNS} from cheers where {where}", args)
             return cur.fetchone()

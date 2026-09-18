@@ -161,25 +161,34 @@ class CheerService:
 
     # --- the runner ------------------------------------------------------------
 
-    def runner_events(self, token: str) -> list[RunnerEvent]:
+    def runner_events(self, token: str | None) -> list[RunnerEvent]:
         runner = self._runner(token)
         return [
             RunnerEvent(e.id, e.name, e.unit, e.slots, e.share_code)
             for e in self._repo.owned_events(runner)
         ]
 
-    def runner_cheers(self, token: str, event_id: UUID) -> list[RunnerCheer]:
+    def runner_cheers(self, token: str | None, event_id: UUID) -> list[RunnerCheer]:
         runner = self._runner(token)
         # Someone else's event looks exactly like one that doesn't exist, so
         # the answer can't be used to discover which events are real.
         if self._repo.owned_event(event_id, runner) is None:
             raise EventNotFound
-        return [
-            RunnerCheer(
-                c.id, c.slot, c.sender_name, self._recordings.download_url(c.audio_path)
+
+        cheers = []
+        for c in self._repo.finished_cheers(event_id):
+            assert (
+                c.audio_path is not None
+            ), "finished_cheers returned one without audio"
+            cheers.append(
+                RunnerCheer(
+                    c.id,
+                    c.slot,
+                    c.sender_name,
+                    self._recordings.download_url(c.audio_path),
+                )
             )
-            for c in self._repo.finished_cheers(event_id)
-        ]
+        return cheers
 
     def _runner(self, token: str | None) -> str:
         runner = self._identity.runner_id(token) if token else None
