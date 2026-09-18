@@ -1,6 +1,7 @@
 .DS_Store
 xcuserdata/
 build/
+node_modules/
 
 # Supporters' recordings are personal and belong in the recordings store, not
 # in git. They reach the phone through Files or the submission site.
