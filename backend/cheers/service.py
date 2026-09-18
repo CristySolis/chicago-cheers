@@ -58,6 +58,7 @@ class PublicEvent:
     """What a supporter sees: enough to choose a spot, never who is in one."""
 
     name: str
+    runner_name: str | None
     unit: str
     slots: list[Decimal]
     submissions_open: bool
@@ -110,6 +111,7 @@ class CheerService:
             raise EventNotFound
         return PublicEvent(
             name=event.name,
+            runner_name=event.runner_name,
             unit=event.unit,
             slots=event.slots,
             submissions_open=event.submissions_open,

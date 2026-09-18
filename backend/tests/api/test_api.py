@@ -169,6 +169,18 @@ def test_supporters_see_how_full_each_spot_is_but_never_who_is_in_it(
     assert "owner_id" not in body
 
 
+def test_supporters_see_whose_race_it_is(
+    api: TestClient, make_event: MakeEvent
+) -> None:
+    named = make_event()
+    unnamed = make_event(runner_name=None)
+
+    assert (
+        api.get(f"/api/events/{named['share_code']}").json()["runner_name"] == "Cristy"
+    )
+    assert api.get(f"/api/events/{unnamed['share_code']}").json()["runner_name"] is None
+
+
 def test_supabases_own_api_cant_be_used_to_go_around_the_rules(
     make_event: MakeEvent,
 ) -> None:

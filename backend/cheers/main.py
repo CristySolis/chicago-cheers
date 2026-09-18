@@ -78,6 +78,7 @@ class SpotCount(BaseModel):
 
 class PublicEventOut(BaseModel):
     name: str
+    runner_name: str | None
     unit: str
     slots: list[Decimal]
     submissions_open: bool
@@ -104,6 +105,7 @@ def public_event(share_code: str, service: Service) -> PublicEventOut:
     event = service.public_event(share_code)
     return PublicEventOut(
         name=event.name,
+        runner_name=event.runner_name,
         unit=event.unit,
         slots=event.slots,
         submissions_open=event.submissions_open,
