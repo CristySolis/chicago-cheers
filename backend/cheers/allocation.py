@@ -24,7 +24,9 @@ def rank_seats(
     preferred: Decimal,
 ) -> list[Seat]:
     """Every free seat on the course, best first."""
-    free = [(slot, seat) for seat in (1, 2) for slot in slots if (slot, seat) not in taken]
+    free = [
+        (slot, seat) for seat in (1, 2) for slot in slots if (slot, seat) not in taken
+    ]
     return sorted(
         free,
         key=lambda s: (s[1], s[0] < preferred, abs(s[0] - preferred)),

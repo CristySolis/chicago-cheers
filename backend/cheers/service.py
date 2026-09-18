@@ -24,18 +24,33 @@ class CheerError(Exception):
 
 
 class EventNotFound(CheerError): ...
+
+
 class SubmissionsClosed(CheerError): ...
+
+
 class NotASpot(CheerError): ...
+
+
 class InvalidName(CheerError): ...
+
+
 class EventFull(CheerError): ...
+
+
 class NoPendingClaim(CheerError): ...
+
+
 class RecordingMissing(CheerError): ...
+
+
 class NotSignedIn(CheerError): ...
 
 
 @dataclass(frozen=True)
 class PublicEvent:
     """What a supporter sees: enough to choose a spot, never who is in one."""
+
     name: str
     unit: str
     slots: list[Decimal]
@@ -123,7 +138,9 @@ class CheerService:
             return Claim(
                 cheer_id=cheer_id,
                 slot=slot,
-                upload_url=self._recordings.upload_url(_recording_path(event.id, cheer_id)),
+                upload_url=self._recordings.upload_url(
+                    _recording_path(event.id, cheer_id)
+                ),
             )
 
         raise EventFull
@@ -158,7 +175,9 @@ class CheerService:
         if self._repo.owned_event(event_id, runner) is None:
             raise EventNotFound
         return [
-            RunnerCheer(c.id, c.slot, c.sender_name, self._recordings.download_url(c.audio_path))
+            RunnerCheer(
+                c.id, c.slot, c.sender_name, self._recordings.download_url(c.audio_path)
+            )
             for c in self._repo.finished_cheers(event_id)
         ]
 

@@ -25,15 +25,19 @@ LOCAL = {
     "DB_URL": os.environ.get("DB_URL"),
 }
 if not all(LOCAL.values()):
-    pytest.exit('Start Supabase and run: eval "$(npx supabase status -o env)"', returncode=2)
+    pytest.exit(
+        'Start Supabase and run: eval "$(npx supabase status -o env)"', returncode=2
+    )
 
 # Must be set before the app is imported, since it reads them once.
-os.environ.update({
-    "DATABASE_URL": LOCAL["DB_URL"],
-    "SUPABASE_URL": LOCAL["API_URL"],
-    "SUPABASE_SERVICE_KEY": LOCAL["SERVICE_ROLE_KEY"],
-    "SUPABASE_ANON_KEY": LOCAL["ANON_KEY"],
-})
+os.environ.update(
+    {
+        "DATABASE_URL": LOCAL["DB_URL"],
+        "SUPABASE_URL": LOCAL["API_URL"],
+        "SUPABASE_SERVICE_KEY": LOCAL["SERVICE_ROLE_KEY"],
+        "SUPABASE_ANON_KEY": LOCAL["ANON_KEY"],
+    }
+)
 
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -42,7 +46,10 @@ from cheers.main import app  # noqa: E402
 # Chicago: one spot per mile to 13, then one per half mile — 39 in all.
 CHICAGO = [D(m) for m in range(1, 14)] + [D("13.5") + D("0.5") * i for i in range(26)]
 
-ADMIN = {"Authorization": f"Bearer {LOCAL['SERVICE_ROLE_KEY']}", "apikey": LOCAL["SERVICE_ROLE_KEY"]}
+ADMIN = {
+    "Authorization": f"Bearer {LOCAL['SERVICE_ROLE_KEY']}",
+    "apikey": LOCAL["SERVICE_ROLE_KEY"],
+}
 
 
 @pytest.fixture(scope="session")
@@ -104,6 +111,7 @@ def make_event(her):
                 row,
             ).fetchone()[0]
         return {**row, "id": event_id}
+
     return make
 
 
@@ -120,7 +128,11 @@ def wav() -> bytes:
     """A real, minimal WAV of silence, so the bucket's type check is honest."""
     n = 800
     return (
-        b"RIFF" + struct.pack("<I", 36 + n * 2) + b"WAVEfmt "
+        b"RIFF"
+        + struct.pack("<I", 36 + n * 2)
+        + b"WAVEfmt "
         + struct.pack("<IHHIIHH", 16, 1, 1, 8000, 16000, 2, 16)
-        + b"data" + struct.pack("<I", n * 2) + b"\0" * (n * 2)
+        + b"data"
+        + struct.pack("<I", n * 2)
+        + b"\0" * (n * 2)
     )

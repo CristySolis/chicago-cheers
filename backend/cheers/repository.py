@@ -70,7 +70,8 @@ class Repository:
     def taken_seats(self, event_id: UUID) -> set[tuple[Decimal, int]]:
         with self._connect() as conn:
             rows = conn.execute(
-                "select slot, seat from cheers where event_id = %s", (event_id,),
+                "select slot, seat from cheers where event_id = %s",
+                (event_id,),
             ).fetchall()
         return {(slot, seat) for slot, seat in rows}
 
@@ -102,7 +103,8 @@ class Repository:
     def complete_claim(self, cheer_id: UUID, audio_path: str) -> None:
         with self._connect() as conn:
             conn.execute(
-                "update cheers set audio_path = %s where id = %s", (audio_path, cheer_id),
+                "update cheers set audio_path = %s where id = %s",
+                (audio_path, cheer_id),
             )
 
     # --- reading back ----------------------------------------------------------

@@ -13,11 +13,16 @@ import httpx
 
 class SupabaseRecordingStore:
 
-    def __init__(self, base_url: str, service_key: str, bucket: str, http: httpx.Client):
+    def __init__(
+        self, base_url: str, service_key: str, bucket: str, http: httpx.Client
+    ):
         self._storage = f"{base_url.rstrip('/')}/storage/v1"
         self._bucket = bucket
         self._http = http
-        self._headers = {"Authorization": f"Bearer {service_key}", "apikey": service_key}
+        self._headers = {
+            "Authorization": f"Bearer {service_key}",
+            "apikey": service_key,
+        }
 
     def upload_url(self, path: str) -> str:
         # The token Supabase returns is scoped to this one path and signed with

@@ -79,7 +79,9 @@ def test_once_every_spot_is_held_the_next_doubles_up_where_it_asked(api, make_ev
 def test_simultaneous_claims_on_one_spot_never_share_a_seat(api, make_event):
     event = make_event()
     with ThreadPoolExecutor(max_workers=25) as pool:
-        responses = list(pool.map(lambda i: claim(api, event, 20, f"racer {i}"), range(25)))
+        responses = list(
+            pool.map(lambda i: claim(api, event, 20, f"racer {i}"), range(25))
+        )
     assert all(r.status_code == 200 for r in responses), [r.text for r in responses]
     spots = [spot(r.json()) for r in responses]
     # 39 spots are free, so 25 people should land on 25 different ones.
@@ -118,13 +120,18 @@ def test_an_abandoned_claim_frees_its_spot_after_the_upload_window(api, make_eve
 # --- anonymity ------------------------------------------------------------------------
 
 
-def test_supporters_see_how_full_each_spot_is_but_never_who_is_in_it(api, web, make_event):
+def test_supporters_see_how_full_each_spot_is_but_never_who_is_in_it(
+    api, web, make_event
+):
     event = make_event()
     cheer(api, web, event, 18, "Mum")
     cheer(api, web, event, 20, "Tete")
 
     body = api.get(f"/api/events/{event['share_code']}").json()
-    assert [(D(str(o["slot"])), o["cheers"]) for o in body["occupancy"]] == [(18, 1), (20, 1)]
+    assert [(D(str(o["slot"])), o["cheers"]) for o in body["occupancy"]] == [
+        (18, 1),
+        (20, 1),
+    ]
     assert "Mum" not in str(body) and "Tete" not in str(body)
     assert "owner_id" not in body
 
@@ -133,13 +140,20 @@ def test_supabases_own_api_cant_be_used_to_go_around_the_rules(make_event):
     make_event()
     direct = httpx.get(
         f"{LOCAL['API_URL']}/rest/v1/cheers?select=*",
-        headers={"apikey": LOCAL["ANON_KEY"], "Authorization": f"Bearer {LOCAL['ANON_KEY']}"},
+        headers={
+            "apikey": LOCAL["ANON_KEY"],
+            "Authorization": f"Bearer {LOCAL['ANON_KEY']}",
+        },
     )
     assert direct.json() == [] or direct.status_code >= 400, direct.text
 
 
 def test_a_runner_sees_her_cheers_with_names_and_nobody_elses(
-    api, web, make_event, her, other_runner,
+    api,
+    web,
+    make_event,
+    her,
+    other_runner,
 ):
     event = make_event()
     cheer(api, web, event, 18, "Mum")
@@ -164,7 +178,9 @@ def test_only_finished_cheers_reach_the_runner(api, web, make_event, her):
 def test_an_upload_link_only_works_for_its_own_claim(api, web, make_event):
     event = make_event()
     c = claimed(api, event, 12)
-    elsewhere = c["upload_url"].replace(c["cheer_id"], "00000000-0000-0000-0000-000000000000")
+    elsewhere = c["upload_url"].replace(
+        c["cheer_id"], "00000000-0000-0000-0000-000000000000"
+    )
     stray = web.put(elsewhere, content=wav(), headers={"Content-Type": "audio/wav"})
     assert stray.status_code >= 400, "uploaded somewhere the link wasn't for"
 
@@ -172,13 +188,17 @@ def test_an_upload_link_only_works_for_its_own_claim(api, web, make_event):
 def test_a_finished_recording_cant_be_replaced(api, web, make_event):
     event = make_event()
     c = cheer(api, web, event, 12, "Mum")
-    again = web.put(c["upload_url"], content=wav(), headers={"Content-Type": "audio/wav"})
+    again = web.put(
+        c["upload_url"], content=wav(), headers={"Content-Type": "audio/wav"}
+    )
     assert again.status_code >= 400, "overwrote a finished recording"
 
 
 def test_only_audio_can_be_uploaded(api, web, make_event):
     c = claimed(api, make_event(), 12)
-    text = web.put(c["upload_url"], content=b"not audio", headers={"Content-Type": "text/plain"})
+    text = web.put(
+        c["upload_url"], content=b"not audio", headers={"Content-Type": "text/plain"}
+    )
     assert text.status_code >= 400
 
 
@@ -195,8 +215,10 @@ def test_only_the_events_runner_can_listen(api, web, make_event, her, other_runn
     assert web.get(link).content == wav()
 
     path = link.split("/object/sign/cheers/")[1].split("?")[0]
-    unsigned = web.get(f"{LOCAL['API_URL']}/storage/v1/object/cheers/{path}",
-                       headers={"apikey": LOCAL["ANON_KEY"]})
+    unsigned = web.get(
+        f"{LOCAL['API_URL']}/storage/v1/object/cheers/{path}",
+        headers={"apikey": LOCAL["ANON_KEY"]},
+    )
     assert unsigned.status_code >= 400, "played a recording without a signed link"
 
 

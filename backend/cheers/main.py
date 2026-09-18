@@ -21,7 +21,9 @@ app = FastAPI(title="Cheers")
 # Only needed when the sender page is served from a different origin than the
 # API, as in local development. Hosted together on Vercel they share one.
 # Set at import time: Starlette refuses middleware once the app has started.
-_origins = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+_origins = [
+    o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "").split(",") if o.strip()
+]
 if _origins:
     app.add_middleware(
         CORSMiddleware,
@@ -103,7 +105,9 @@ def public_event(share_code: str, service: Service) -> PublicEventOut:
         unit=event.unit,
         slots=event.slots,
         submissions_open=event.submissions_open,
-        occupancy=[SpotCount(slot=s, cheers=n) for s, n in sorted(event.occupancy.items())],
+        occupancy=[
+            SpotCount(slot=s, cheers=n) for s, n in sorted(event.occupancy.items())
+        ],
     )
 
 
@@ -144,15 +148,21 @@ def _token(authorization: str | None) -> str | None:
 
 @app.get("/api/runner/events")
 def runner_events(
-    service: Service, authorization: Annotated[str | None, Header()] = None,
+    service: Service,
+    authorization: Annotated[str | None, Header()] = None,
 ) -> list[RunnerEventOut]:
-    return [RunnerEventOut(**vars(e)) for e in service.runner_events(_token(authorization))]
+    return [
+        RunnerEventOut(**vars(e)) for e in service.runner_events(_token(authorization))
+    ]
 
 
 @app.get("/api/runner/events/{event_id}/cheers")
 def runner_cheers(
-    event_id: UUID, service: Service, authorization: Annotated[str | None, Header()] = None,
+    event_id: UUID,
+    service: Service,
+    authorization: Annotated[str | None, Header()] = None,
 ) -> list[RunnerCheerOut]:
     return [
-        RunnerCheerOut(**vars(c)) for c in service.runner_cheers(_token(authorization), event_id)
+        RunnerCheerOut(**vars(c))
+        for c in service.runner_cheers(_token(authorization), event_id)
     ]

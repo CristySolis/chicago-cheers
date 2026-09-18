@@ -39,9 +39,14 @@ def build_service(settings: Settings) -> CheerService:
     return CheerService(
         repository=Repository(settings.database_url),
         recordings=SupabaseRecordingStore(
-            settings.supabase_url, settings.supabase_service_key, settings.recordings_bucket, http,
+            settings.supabase_url,
+            settings.supabase_service_key,
+            settings.recordings_bucket,
+            http,
         ),
-        identity=SupabaseIdentityVerifier(settings.supabase_url, settings.supabase_anon_key, http),
+        identity=SupabaseIdentityVerifier(
+            settings.supabase_url, settings.supabase_anon_key, http
+        ),
     )
 
 
