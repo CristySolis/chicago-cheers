@@ -245,8 +245,9 @@ const UNITS = {
 const TEXT = {
   en: {
     title: (n) => n ? `Record a cheer for ${n}` : "Record a cheer",
-    intro: (n, u) => `${n} runs with a phone that plays your recording at the ${u} you choose — up to ${MAX_SECONDS} seconds, and only ${n} hears it.`,
-    someone: "the runner",
+    intro: (n, u) => n
+      ? `${n} runs with a phone that plays your recording at the ${u} you choose — up to ${MAX_SECONDS} seconds, and only ${n} hears it.`
+      : `The runner carries a phone that plays your recording at the ${u} you choose — up to ${MAX_SECONDS} seconds, and only the runner hears it.`,
     loading: "Loading…",
     notFound: "This link doesn’t match any race. Check that you have the whole link.",
     loadError: "Couldn’t reach the server. Check your connection and reload the page.",
@@ -261,7 +262,7 @@ const TEXT = {
     spotLabel: (u, label, count) => `${u} ${label}` + (count === 0 ? "" : count === 1 ? ", has one cheer" : ", full"),
     where: (u, label) => `${u} ${label}`,
     nameHeading: "2. Your name",
-    nameHint: (n) => `${n} sees it on screen while your cheer plays.`,
+    nameHint: (n) => `${n || "The runner"} sees it on screen while your cheer plays.`,
     recHeading: "3. Record",
     recHint: `Up to ${MAX_SECONDS} seconds. Say it like you’re at the side of the road!`,
     record: "Tap to record",
@@ -273,7 +274,7 @@ const TEXT = {
     noMic: "This browser can’t record audio. Try opening the link in Safari or Chrome.",
     tooShort: "That was very short — try again?",
     convertError: "Couldn’t process that recording. Try again, or open the link in another browser.",
-    send: (n) => `Send to ${n}`,
+    send: (n) => n ? `Send to ${n}` : "Send",
     sending: "Sending…",
     missing: (parts) => `Still needed: ${parts.join(", ")}.`,
     needSpot: (u) => `a ${u}`,
@@ -281,16 +282,17 @@ const TEXT = {
     needRec: "a recording",
     sendError: "Something went wrong sending it. Your recording is still here — please try again.",
     doneHeading: "Sent — thank you!",
-    doneWhere: (n, where) => `${n} will hear you at ${where}.`,
-    doneBefore: (n, where) => `You’ve sent a cheer for ${where}. ${n} will hear it on race day.`,
+    doneWhere: (n, where) => `${n || "The runner"} will hear you at ${where}.`,
+    doneBefore: (n, where) => `You’ve sent a cheer for ${where}. ${n || "The runner"} will hear it on race day.`,
     moved: (asked, got) => `${asked} was taken a moment ago, so yours plays at ${got}.`,
     another: "Record another cheer",
     privacy: "Other supporters never see your name or hear your recording.",
   },
   es: {
     title: (n) => n ? `Graba un mensaje de ánimo para ${n}` : "Graba un mensaje de ánimo",
-    intro: (n, u) => `${n} corre con un teléfono que reproduce tu grabación en la ${u} que elijas: hasta ${MAX_SECONDS} segundos, y solo ${n} la escucha.`,
-    someone: "quien corre",
+    intro: (n, u) => n
+      ? `${n} corre con un teléfono que reproduce tu grabación en la ${u} que elijas: hasta ${MAX_SECONDS} segundos, y solo ${n} la escucha.`
+      : `El teléfono que lleva quien corre reproduce tu grabación en la ${u} que elijas: hasta ${MAX_SECONDS} segundos, y nadie más la escucha.`,
     loading: "Cargando…",
     notFound: "Este enlace no corresponde a ninguna carrera. Revisa que esté completo.",
     loadError: "No se pudo conectar con el servidor. Revisa tu conexión y vuelve a cargar la página.",
@@ -305,7 +307,7 @@ const TEXT = {
     spotLabel: (u, label, count) => `${u} ${label}` + (count === 0 ? "" : count === 1 ? ", tiene un mensaje" : ", completa"),
     where: (u, label) => `la ${u} ${label}`,
     nameHeading: "2. Tu nombre",
-    nameHint: (n) => `${n} lo verá en pantalla mientras suena tu mensaje.`,
+    nameHint: (n) => n ? `${n} lo verá en pantalla mientras suena tu mensaje.` : "Aparecerá en pantalla mientras suena tu mensaje.",
     recHeading: "3. Graba",
     recHint: `Hasta ${MAX_SECONDS} segundos. ¡Dilo como si estuvieras al borde del camino!`,
     record: "Toca para grabar",
@@ -317,7 +319,7 @@ const TEXT = {
     noMic: "Este navegador no puede grabar audio. Prueba a abrir el enlace en Safari o Chrome.",
     tooShort: "Ha sido muy corto. ¿Lo intentas otra vez?",
     convertError: "No se pudo procesar la grabación. Inténtalo de nuevo o abre el enlace en otro navegador.",
-    send: (n) => `Enviar a ${n}`,
+    send: (n) => n ? `Enviar a ${n}` : "Enviar",
     sending: "Enviando…",
     missing: (parts) => `Falta: ${parts.join(", ")}.`,
     needSpot: (u) => `elegir una ${u}`,
@@ -325,8 +327,8 @@ const TEXT = {
     needRec: "la grabación",
     sendError: "Algo falló al enviarlo. Tu grabación sigue aquí; inténtalo de nuevo.",
     doneHeading: "¡Enviado, gracias!",
-    doneWhere: (n, where) => `${n} te escuchará en ${where}.`,
-    doneBefore: (n, where) => `Ya enviaste un mensaje para ${where}. ${n} lo escuchará el día de la carrera.`,
+    doneWhere: (n, where) => n ? `${n} te escuchará en ${where}.` : `Tu mensaje sonará en ${where}.`,
+    doneBefore: (n, where) => `Ya enviaste un mensaje para ${where}. ${n ? `${n} lo escuchará` : "Sonará"} el día de la carrera.`,
     moved: (asked, got) => `${asked} se ocupó hace un momento, así que el tuyo sonará en ${got}.`,
     another: "Grabar otro mensaje",
     privacy: "Nadie más ve tu nombre ni escucha tu grabación.",
@@ -376,8 +378,10 @@ function unitWords() {
   return unit[state.lang];
 }
 
+// The runner's name, or null when the race has none: every sentence using it
+// has its own wording for that case, since a stand-in noun reads badly.
 function runner() {
-  return (state.event && state.event.runner_name) || t().someone;
+  return (state.event && state.event.runner_name) || null;
 }
 
 // "13.5" → "13½", "20.0" → "20"
