@@ -10,7 +10,11 @@ from dataclasses import dataclass
 
 import httpx
 
-from cheers.adapters.supabase import SupabaseIdentityVerifier, SupabaseRecordingStore
+from cheers.adapters.supabase import (
+    SupabaseIdentityVerifier,
+    SupabaseRecordingStore,
+    SupabaseRunnerSignIn,
+)
 from cheers.repository import Repository
 from cheers.service import CheerService
 
@@ -45,6 +49,9 @@ def build_service(settings: Settings) -> CheerService:
             http,
         ),
         identity=SupabaseIdentityVerifier(
+            settings.supabase_url, settings.supabase_anon_key, http
+        ),
+        sign_in=SupabaseRunnerSignIn(
             settings.supabase_url, settings.supabase_anon_key, http
         ),
     )

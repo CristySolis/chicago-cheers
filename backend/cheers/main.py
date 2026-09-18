@@ -57,6 +57,8 @@ _STATUS = {
     svc.NoPendingClaim: (404, "That claim has expired or is already finished."),
     svc.RecordingMissing: (409, "The recording hasn't finished uploading."),
     svc.NotSignedIn: (401, "Please sign in."),
+    svc.BadCredentials: (401, "That email and password don't match."),
+    svc.SessionExpired: (401, "Your session has ended. Please sign in again."),
 }
 
 
@@ -138,6 +140,31 @@ class RunnerCheerOut(BaseModel):
     slot: Decimal
     sender_name: str
     download_url: str
+
+
+class SignInIn(BaseModel):
+    email: str
+    password: str
+
+
+class RefreshIn(BaseModel):
+    refresh_token: str
+
+
+class SessionOut(BaseModel):
+    access_token: str
+    refresh_token: str
+    expires_in: int
+
+
+@app.post("/api/runner/session")
+def sign_in(body: SignInIn, service: Service) -> SessionOut:
+    return SessionOut(**vars(service.sign_in(body.email, body.password)))
+
+
+@app.post("/api/runner/session/refresh")
+def refresh(body: RefreshIn, service: Service) -> SessionOut:
+    return SessionOut(**vars(service.refresh(body.refresh_token)))
 
 
 def _token(authorization: str | None) -> str | None:
