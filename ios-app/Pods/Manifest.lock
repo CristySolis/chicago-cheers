@@ -1,0 +1,16 @@
+PODS:
+  - ConnectIQ (1.7.0)
+
+DEPENDENCIES:
+  - ConnectIQ
+
+SPEC REPOS:
+  trunk:
+    - ConnectIQ
+
+SPEC CHECKSUMS:
+  ConnectIQ: 99ba5f7229d2d6ebed75f35df81c8caa6c62d60b
+
+PODFILE CHECKSUM: bd1736f548c508409e6a9069aefa5824329563d8
+
+COCOAPODS: 1.17.0

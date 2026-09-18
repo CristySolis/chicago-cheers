@@ -1,13 +1,19 @@
 import Foundation
+import Combine
 
 /// Polls a published Google Sheet (as CSV) for new rows and reports any
 /// messages not seen before. Expects columns: Timestamp, Sender, Message
 /// (this is exactly what a Google Form's response sheet looks like with
 /// two short-answer questions, "Name" and "Message").
-final class SheetPoller {
+final class SheetPoller: ObservableObject {
 
     private(set) var seenIds = Set<String>()
     private var timer: Timer?
+
+    /// Every cheer seen this session, oldest first. Owned here rather than in the
+    /// view: a closure captured once in .onAppear writes to a @State location
+    /// SwiftUI has already discarded, so appends from it are silently lost.
+    @Published var received: [CheerMessage] = []
 
     /// Called on the main thread with any new messages, oldest first.
     var onNewMessages: (([CheerMessage]) -> Void)?
@@ -27,8 +33,13 @@ final class SheetPoller {
 
     func fetchOnce() {
         let request = URLRequest(url: Config.sheetCSVURL, cachePolicy: .reloadIgnoringLocalCacheData)
-        URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            // Google serves an HTML error/login page on a bad or unpublished
+            // URL. Parsing that as CSV relays page markup to the watch as
+            // cheers, so only accept an actual CSV 200.
             guard let self, let data, error == nil,
+                  let http = response as? HTTPURLResponse, http.statusCode == 200,
+                  http.mimeType?.hasPrefix("text/csv") == true,
                   let csv = String(data: data, encoding: .utf8) else { return }
 
             let rows = Self.parseCSV(csv)
@@ -52,6 +63,7 @@ final class SheetPoller {
 
             guard !fresh.isEmpty else { return }
             DispatchQueue.main.async {
+                self.received.append(contentsOf: fresh)
                 self.onNewMessages?(fresh)
             }
         }.resume()
@@ -77,7 +89,10 @@ final class SheetPoller {
                 switch ch {
                 case "\"": inQuotes = true
                 case ",": row.append(field); field = ""
-                case "\n": row.append(field); field = ""; rows.append(row); row = []
+                // Swift treats CRLF as one Character, so "\r\n" must be matched
+                // explicitly — Google's CSV export uses it and would otherwise
+                // never terminate a row.
+                case "\n", "\r\n": row.append(field); field = ""; rows.append(row); row = []
                 case "\r": break
                 default: field.append(ch)
                 }
