@@ -4,12 +4,13 @@ in a Cloud Run container tomorrow without changes."""
 import os
 from decimal import Decimal
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
 from cheers import service as svc
@@ -70,6 +71,18 @@ def _refused(_: Request, error: svc.CheerError) -> JSONResponse:
 
 # --- supporters ------------------------------------------------------------------
 
+# The sender page is one static file. Served by the API rather than by the
+# host's static hosting, so the page and the API it calls always share an
+# origin, and moving hosts moves both together.
+_SENDER_PAGE = (Path(__file__).parent / "web" / "sender.html").read_text()
+
+
+@app.get("/cheer/{share_code}", include_in_schema=False)
+def sender_page(share_code: str) -> HTMLResponse:
+    # Whether the code is real is for the page to find out through the API,
+    # so an unknown one gets the page's own friendly message.
+    return HTMLResponse(_SENDER_PAGE, headers={"Cache-Control": "no-cache"})
+
 
 class SpotCount(BaseModel):
     slot: Decimal
@@ -78,6 +91,7 @@ class SpotCount(BaseModel):
 
 class PublicEventOut(BaseModel):
     name: str
+    runner_name: str | None
     unit: str
     slots: list[Decimal]
     submissions_open: bool
@@ -104,6 +118,7 @@ def public_event(share_code: str, service: Service) -> PublicEventOut:
     event = service.public_event(share_code)
     return PublicEventOut(
         name=event.name,
+        runner_name=event.runner_name,
         unit=event.unit,
         slots=event.slots,
         submissions_open=event.submissions_open,

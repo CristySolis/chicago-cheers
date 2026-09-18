@@ -13,6 +13,7 @@ class Event:
     slots: list[Decimal]
     submissions_open: bool
     share_code: str
+    runner_name: str | None
 
 
 @dataclass(frozen=True)

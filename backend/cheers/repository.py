@@ -137,5 +137,7 @@ class Repository:
             return cur.fetchone()
 
 
-_EVENT_COLUMNS = "id, owner_id, name, unit, slots, submissions_open, share_code"
+_EVENT_COLUMNS = (
+    "id, owner_id, name, unit, slots, submissions_open, share_code, runner_name"
+)
 _CHEER_COLUMNS = "id, event_id, slot, seat, sender_name, audio_path, created_at"

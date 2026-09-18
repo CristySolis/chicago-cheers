@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Record a Cheer</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📣</text></svg>">
+<!--
+  The page supporters open from the share link. Everything it does goes
+  through the public API on this same origin; the recording itself goes
+  straight from the browser to storage through a one-time upload link.
+
+  Recordings are converted here to 16 kHz mono WAV, the one format every
+  browser can make and the phone can always play, whatever the browser
+  recorded in (Safari: mp4, Chrome/Firefox: webm/ogg).
+-->
+<style>
+  :root {
+    --bg: #f4f7f9;
+    --card: #ffffff;
+    --ink: #14212b;
+    --muted: #5b6b77;
+    --line: #dbe3e8;
+    --sky: #41b6e6;        /* the Chicago flag's blue stripes */
+    --sky-ink: #0b5d80;
+    --star: #e4002b;       /* and its red stars */
+    --star-ink: #ffffff;
+    --chip: #eef3f6;
+    --chip-taken: #e3e8eb;
+    --chip-taken-ink: #9aa7b0;
+    --ok: #1d7a46;
+    --warn-bg: #fff4e5;
+    --warn-ink: #7a4b00;
+    --shadow: 0 1px 2px rgba(20, 33, 43, .06), 0 4px 16px rgba(20, 33, 43, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1418;
+      --card: #172026;
+      --ink: #e8eef2;
+      --muted: #97a6b1;
+      --line: #2a363e;
+      --sky: #41b6e6;
+      --sky-ink: #8fd6f5;
+      --star: #ff3355;
+      --chip: #202c33;
+      --chip-taken: #1a2329;
+      --chip-taken-ink: #56646e;
+      --ok: #5fd08e;
+      --warn-bg: #3a2a10;
+      --warn-ink: #f5c77a;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1418;
+    --card: #172026;
+    --ink: #e8eef2;
+    --muted: #97a6b1;
+    --line: #2a363e;
+    --sky: #41b6e6;
+    --sky-ink: #8fd6f5;
+    --star: #ff3355;
+    --chip: #202c33;
+    --chip-taken: #1a2329;
+    --chip-taken-ink: #56646e;
+    --ok: #5fd08e;
+    --warn-bg: #3a2a10;
+    --warn-ink: #f5c77a;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  main {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+  }
+  [hidden] { display: none !important; }
+
+  .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .flag { display: flex; gap: 5px; align-items: center; }
+  .flag span { width: 22px; height: 5px; border-radius: 3px; background: var(--sky); }
+  .lang { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .lang button {
+    border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-size: 13px; font-weight: 600; padding: 5px 12px; cursor: pointer;
+  }
+  .lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 6px; letter-spacing: -.01em; }
+  h1 .star { color: var(--star); }
+  .event { color: var(--muted); font-weight: 600; margin: 0 0 12px; }
+  .intro { margin: 0 0 20px; }
+
+  .card {
+    background: var(--card); border-radius: 16px; box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+    padding: 18px 16px; margin-bottom: 14px;
+  }
+  .card h2 { font-size: 18px; margin: 0 0 4px; }
+  .hint { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+
+  .group-label { font-size: 13px; font-weight: 600; color: var(--muted); margin: 12px 0 6px; }
+  .spots { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 6px; }
+  .spot {
+    position: relative;
+    font: inherit; font-weight: 600; font-variant-numeric: tabular-nums;
+    height: 44px; border-radius: 10px; border: 2px solid transparent;
+    background: var(--chip); color: var(--ink); cursor: pointer;
+  }
+  .spot .dots { position: absolute; left: 0; right: 0; bottom: 3px; font-size: 7px; letter-spacing: 2px; line-height: 1; color: var(--muted); }
+  .spot:disabled { background: var(--chip-taken); color: var(--chip-taken-ink); cursor: not-allowed; }
+  .spot[aria-pressed="true"] { background: var(--sky); color: #06202c; border-color: var(--sky-ink); }
+  .spot[aria-pressed="true"] .dots { color: #06202c; }
+
+  input[type="text"] {
+    width: 100%; font: inherit; font-size: 17px; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+  }
+  input[type="text"]:focus { outline: 2px solid var(--sky); outline-offset: 1px; }
+
+  .recorder { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 4px; }
+  .rec {
+    width: 88px; height: 88px; border-radius: 50%; border: 0; cursor: pointer;
+    background: var(--star); color: var(--star-ink);
+    display: grid; place-items: center; box-shadow: 0 4px 14px rgba(228, 0, 43, .3);
+  }
+  .rec svg { width: 34px; height: 34px; }
+  .rec.recording { animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 12px rgba(228, 0, 43, .12); } }
+  @media (prefers-reduced-motion: reduce) { .rec.recording { animation: none; } }
+  .rec-label { font-weight: 600; }
+  .meter { width: 100%; height: 6px; background: var(--chip); border-radius: 3px; overflow: hidden; }
+  .meter div { height: 100%; width: 0; background: var(--star); transition: width .1s linear; }
+  audio { width: 100%; }
+
+  .link {
+    font: inherit; font-size: 15px; font-weight: 600; color: var(--sky-ink);
+    background: none; border: 0; padding: 6px; cursor: pointer; text-decoration: underline;
+  }
+  .send {
+    width: 100%; font: inherit; font-size: 18px; font-weight: 700;
+    padding: 16px; border: 0; border-radius: 14px; cursor: pointer;
+    background: var(--ink); color: var(--bg);
+  }
+  .send:disabled { opacity: .35; cursor: not-allowed; }
+  .missing { color: var(--muted); font-size: 14px; text-align: center; margin: 8px 0 0; }
+
+  .notice { border-radius: 12px; padding: 12px 14px; margin: 0 0 14px; background: var(--warn-bg); color: var(--warn-ink); }
+  .privacy { color: var(--muted); font-size: 13px; text-align: center; margin-top: 18px; }
+
+  .done { text-align: center; padding: 28px 16px; }
+  .done .big { font-size: 56px; line-height: 1; margin-bottom: 8px; }
+  .done h2 { font-size: 24px; margin: 0 0 8px; }
+  .done p { margin: 0 0 10px; }
+  .status { text-align: center; color: var(--muted); padding: 40px 0; }
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div class="flag" aria-hidden="true"><span></span><span></span></div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" lang="en">EN</button>
+      <button type="button" data-lang="es" lang="es">ES</button>
+    </div>
+  </div>
+
+  <h1 id="title"></h1>
+  <p class="event" id="event-name"></p>
+
+  <p class="status" id="status"></p>
+
+  <section id="form" hidden>
+    <p class="intro" id="intro"></p>
+    <p class="notice" id="notice" hidden></p>
+
+    <div class="card">
+      <h2 id="spot-heading"></h2>
+      <p class="hint" id="spot-hint"></p>
+      <div id="spot-groups"></div>
+    </div>
+
+    <div class="card">
+      <h2><label for="name" id="name-heading"></label></h2>
+      <p class="hint" id="name-hint"></p>
+      <input type="text" id="name" maxlength="60" autocomplete="name" autocapitalize="words">
+    </div>
+
+    <div class="card">
+      <h2 id="rec-heading"></h2>
+      <p class="hint" id="rec-hint"></p>
+      <div class="recorder">
+        <button type="button" class="rec" id="rec" aria-describedby="rec-label">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" id="rec-icon"></svg>
+        </button>
+        <div class="rec-label" id="rec-label" aria-live="polite"></div>
+        <div class="meter" id="meter" hidden><div></div></div>
+        <audio id="preview" controls hidden></audio>
+        <button type="button" class="link" id="again" hidden></button>
+      </div>
+    </div>
+
+    <button type="button" class="send" id="send" disabled></button>
+    <p class="missing" id="missing" aria-live="polite"></p>
+    <p class="privacy" id="privacy"></p>
+  </section>
+
+  <section class="card done" id="done" hidden>
+    <div class="big" aria-hidden="true">🎉</div>
+    <h2 id="done-heading"></h2>
+    <p id="done-where"></p>
+    <p class="hint" id="done-moved" hidden></p>
+    <button type="button" class="link" id="another"></button>
+  </section>
+</main>
+
+<script>
+"use strict";
+
+const MAX_SECONDS = 25;
+const MIN_SECONDS = 1;
+const RATE = 16000;
+
+const MIC = '<path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z"/>';
+const STOP = '<rect x="6" y="6" width="12" height="12" rx="2"/>';
+
+// --- words ------------------------------------------------------------------
+// No pronouns for the runner anywhere: the copy always uses their name.
+
+const UNITS = {
+  mi: { en: ["mile", "miles"], es: ["milla", "millas"] },
+  km: { en: ["km", "km"], es: ["km", "km"] },
+};
+
+const TEXT = {
+  en: {
+    title: (n) => n ? `Record a cheer for ${n}` : "Record a cheer",
+    intro: (n, u) => `${n} runs with a phone that plays your recording at the ${u} you choose — up to ${MAX_SECONDS} seconds, and only ${n} hears it.`,
+    someone: "the runner",
+    loading: "Loading…",
+    notFound: "This link doesn’t match any race. Check that you have the whole link.",
+    loadError: "Couldn’t reach the server. Check your connection and reload the page.",
+    closed: "Cheers for this race are closed. Thank you for wanting to send one!",
+    full: "Every spot on the course has been taken. Thank you for wanting to send a cheer!",
+    spotHeading: (u) => `1. Pick a ${u}`,
+    spotHint: (u, us) => `Greyed-out ${us} already have a cheer. Once every ${u} has one, a second person can join any of them.`,
+    spotHintDoubling: (u) => `Every ${u} has a cheer already, so yours will play alongside another one.`,
+    groupAll: (u) => `Every ${u}`,
+    firstHalf: (u) => `First half — every ${u}`,
+    secondHalf: (u) => `Second half — every half ${u}`,
+    spotLabel: (u, label, count) => `${u} ${label}` + (count === 0 ? "" : count === 1 ? ", has one cheer" : ", full"),
+    where: (u, label) => `${u} ${label}`,
+    nameHeading: "2. Your name",
+    nameHint: (n) => `${n} sees it on screen while your cheer plays.`,
+    recHeading: "3. Record",
+    recHint: `Up to ${MAX_SECONDS} seconds. Say it like you’re at the side of the road!`,
+    record: "Tap to record",
+    stop: (s) => `Recording — ${s} s left. Tap to stop.`,
+    recorded: (s) => `Recorded ${s} s. Have a listen.`,
+    processing: "Getting it ready…",
+    again: "Record again",
+    micDenied: "The microphone is blocked. Allow it for this site in your browser settings, then try again.",
+    noMic: "This browser can’t record audio. Try opening the link in Safari or Chrome.",
+    tooShort: "That was very short — try again?",
+    convertError: "Couldn’t process that recording. Try again, or open the link in another browser.",
+    send: (n) => `Send to ${n}`,
+    sending: "Sending…",
+    missing: (parts) => `Still needed: ${parts.join(", ")}.`,
+    needSpot: (u) => `a ${u}`,
+    needName: "your name",
+    needRec: "a recording",
+    sendError: "Something went wrong sending it. Your recording is still here — please try again.",
+    doneHeading: "Sent — thank you!",
+    doneWhere: (n, where) => `${n} will hear you at ${where}.`,
+    doneBefore: (n, where) => `You’ve sent a cheer for ${where}. ${n} will hear it on race day.`,
+    moved: (asked, got) => `${asked} was taken a moment ago, so yours plays at ${got}.`,
+    another: "Record another cheer",
+    privacy: "Other supporters never see your name or hear your recording.",
+  },
+  es: {
+    title: (n) => n ? `Graba un mensaje de ánimo para ${n}` : "Graba un mensaje de ánimo",
+    intro: (n, u) => `${n} corre con un teléfono que reproduce tu grabación en la ${u} que elijas: hasta ${MAX_SECONDS} segundos, y solo ${n} la escucha.`,
+    someone: "quien corre",
+    loading: "Cargando…",
+    notFound: "Este enlace no corresponde a ninguna carrera. Revisa que esté completo.",
+    loadError: "No se pudo conectar con el servidor. Revisa tu conexión y vuelve a cargar la página.",
+    closed: "Ya no se aceptan mensajes para esta carrera. ¡Gracias por querer enviar uno!",
+    full: "Ya se han ocupado todos los puntos del recorrido. ¡Gracias por querer enviar un mensaje!",
+    spotHeading: (u) => `1. Elige una ${u}`,
+    spotHint: (u, us) => `Las ${us} en gris ya tienen un mensaje. Cuando todas tengan uno, podrás sumarte a cualquiera como segunda persona.`,
+    spotHintDoubling: (u) => `Todas las ${u === "km" ? "posiciones" : "millas"} tienen ya un mensaje, así que el tuyo sonará junto a otro.`,
+    groupAll: (u) => `Cada ${u}`,
+    firstHalf: (u) => `Primera mitad — cada ${u}`,
+    secondHalf: (u) => `Segunda mitad — cada media ${u}`,
+    spotLabel: (u, label, count) => `${u} ${label}` + (count === 0 ? "" : count === 1 ? ", tiene un mensaje" : ", completa"),
+    where: (u, label) => `la ${u} ${label}`,
+    nameHeading: "2. Tu nombre",
+    nameHint: (n) => `${n} lo verá en pantalla mientras suena tu mensaje.`,
+    recHeading: "3. Graba",
+    recHint: `Hasta ${MAX_SECONDS} segundos. ¡Dilo como si estuvieras al borde del camino!`,
+    record: "Toca para grabar",
+    stop: (s) => `Grabando: quedan ${s} s. Toca para parar.`,
+    recorded: (s) => `Grabados ${s} s. Escúchalo.`,
+    processing: "Preparándolo…",
+    again: "Grabar de nuevo",
+    micDenied: "El micrófono está bloqueado. Permítelo para este sitio en los ajustes del navegador y vuelve a intentarlo.",
+    noMic: "Este navegador no puede grabar audio. Prueba a abrir el enlace en Safari o Chrome.",
+    tooShort: "Ha sido muy corto. ¿Lo intentas otra vez?",
+    convertError: "No se pudo procesar la grabación. Inténtalo de nuevo o abre el enlace en otro navegador.",
+    send: (n) => `Enviar a ${n}`,
+    sending: "Enviando…",
+    missing: (parts) => `Falta: ${parts.join(", ")}.`,
+    needSpot: (u) => `elegir una ${u}`,
+    needName: "tu nombre",
+    needRec: "la grabación",
+    sendError: "Algo falló al enviarlo. Tu grabación sigue aquí; inténtalo de nuevo.",
+    doneHeading: "¡Enviado, gracias!",
+    doneWhere: (n, where) => `${n} te escuchará en ${where}.`,
+    doneBefore: (n, where) => `Ya enviaste un mensaje para ${where}. ${n} lo escuchará el día de la carrera.`,
+    moved: (asked, got) => `${asked} se ocupó hace un momento, así que el tuyo sonará en ${got}.`,
+    another: "Grabar otro mensaje",
+    privacy: "Nadie más ve tu nombre ni escucha tu grabación.",
+  },
+};
+
+// --- state ------------------------------------------------------------------
+
+const code = decodeURIComponent(location.pathname.split("/").filter(Boolean).pop() || "");
+const state = {
+  lang: initialLanguage(),
+  phase: "loading",      // loading | form | done | error
+  message: null,         // which TEXT key explains an error screen
+  event: null,
+  spot: null,            // the slot string as the API sent it, e.g. "13.5"
+  recording: null,       // { blob, seconds, url }
+  recorder: null,
+  recState: "idle",      // idle | recording | processing | ready
+  recError: null,
+  secondsLeft: MAX_SECONDS,
+  claim: null,           // kept so a failed upload is retried, not re-claimed
+  sending: false,
+  sendError: false,
+  result: null,          // { asked, got } once sent
+};
+
+function store(key, value) {
+  try {
+    if (value === undefined) return localStorage.getItem(key);
+    localStorage.setItem(key, value);
+  } catch (_) { /* private mode, blocked storage: the page works without it */ }
+  return null;
+}
+
+function initialLanguage() {
+  const saved = store("cheers:lang");
+  if (saved === "en" || saved === "es") return saved;
+  const wanted = navigator.languages || [navigator.language || "en"];
+  return wanted.some((l) => String(l).toLowerCase().startsWith("es")) ? "es" : "en";
+}
+
+const t = () => TEXT[state.lang];
+const $ = (id) => document.getElementById(id);
+
+function unitWords() {
+  const unit = (state.event && UNITS[state.event.unit]) || UNITS.mi;
+  return unit[state.lang];
+}
+
+function runner() {
+  return (state.event && state.event.runner_name) || t().someone;
+}
+
+// "13.5" → "13½", "20.0" → "20"
+function spotLabel(slot) {
+  const n = Number(slot);
+  const whole = Math.floor(n);
+  return Math.abs(n - whole - 0.5) < 1e-9 ? `${whole}½` : String(whole);
+}
+
+function occupancyOf(slot) {
+  const found = state.event.occupancy.find((o) => Number(o.slot) === Number(slot));
+  return found ? found.cheers : 0;
+}
+
+// Anyone can have a free spot. A second person only joins once none are
+// free: that is the order the server hands seats out in anyway, so offering
+// a half-full spot earlier would only get the choice overridden.
+function isAvailable(slot) {
+  const count = occupancyOf(slot);
+  if (count >= 2) return false;
+  return count === 0 || !anyFree();
+}
+
+function anyFree() {
+  return state.event.slots.some((s) => occupancyOf(s) === 0);
+}
+
+// --- rendering ----------------------------------------------------------------
+
+function render() {
+  const w = t();
+  const [u, us] = unitWords();
+  const n = runner();
+  document.documentElement.lang = state.lang;
+  document.title = w.title(state.event && state.event.runner_name);
+  for (const b of document.querySelectorAll(".lang button")) {
+    b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang));
+  }
+
+  $("title").innerHTML = "";
+  $("title").append(w.title(state.event && state.event.runner_name) + " ");
+  const star = document.createElement("span");
+  star.className = "star";
+  star.setAttribute("aria-hidden", "true");
+  star.textContent = "✶";
+  $("title").append(star);
+  $("event-name").textContent = state.event ? state.event.name : "";
+
+  $("status").hidden = state.phase !== "loading" && state.phase !== "error";
+  $("status").textContent = state.phase === "loading" ? w.loading : state.message ? w[state.message] : "";
+  $("form").hidden = state.phase !== "form";
+  $("done").hidden = state.phase !== "done";
+
+  if (state.phase === "form") renderForm(w, u, us, n);
+  if (state.phase === "done") renderDone(w, u, n);
+}
+
+function renderForm(w, u, us, n) {
+  $("intro").textContent = w.intro(n, u);
+  $("spot-heading").textContent = w.spotHeading(u);
+  $("spot-hint").textContent = anyFree() ? w.spotHint(u, us) : w.spotHintDoubling(u);
+  renderSpots(w, u, us);
+
+  $("name-heading").textContent = w.nameHeading;
+  $("name-hint").textContent = w.nameHint(n);
+
+  $("rec-heading").textContent = w.recHeading;
+  $("rec-hint").textContent = w.recHint;
+  const rec = $("rec");
+  const recording = state.recState === "recording";
+  rec.classList.toggle("recording", recording);
+  $("rec-icon").innerHTML = recording ? STOP : MIC;
+  rec.disabled = state.recState === "processing" || state.sending;
+  rec.hidden = state.recState === "ready";
+  rec.setAttribute("aria-label", recording ? w.stop(state.secondsLeft) : w.record);
+  $("rec-label").textContent =
+    state.recError ? w[state.recError] :
+    recording ? w.stop(state.secondsLeft) :
+    state.recState === "processing" ? w.processing :
+    state.recState === "ready" ? w.recorded(Math.round(state.recording.seconds)) :
+    w.record;
+  $("meter").hidden = !recording;
+  $("meter").firstElementChild.style.width = `${100 * (1 - state.secondsLeft / MAX_SECONDS)}%`;
+  $("preview").hidden = state.recState !== "ready";
+  $("again").hidden = state.recState !== "ready" || state.sending;
+  $("again").textContent = w.again;
+
+  const missing = [];
+  if (!state.spot) missing.push(w.needSpot(u));
+  if (!$("name").value.trim()) missing.push(w.needName);
+  if (state.recState !== "ready") missing.push(w.needRec);
+  const send = $("send");
+  send.textContent = state.sending ? w.sending : w.send(n);
+  send.disabled = state.sending || missing.length > 0;
+  $("missing").textContent = state.sendError ? w.sendError : missing.length ? w.missing(missing) : "";
+
+  $("notice").hidden = !state.previous;
+  if (state.previous) {
+    $("notice").textContent = w.doneBefore(n, w.where(u, spotLabel(state.previous)));
+  }
+  $("privacy").textContent = w.privacy;
+}
+
+function renderSpots(w, u, us) {
+  const slots = state.event.slots;
+  // A course is split where half spots start, so the back half, where
+  // they are denser, reads as its own block.
+  const split = slots.findIndex((s) => !Number.isInteger(Number(s)));
+  const groups = split > 0
+    ? [[w.firstHalf(u), slots.slice(0, split)], [w.secondHalf(u), slots.slice(split)]]
+    : [[w.groupAll(u), slots]];
+
+  const box = $("spot-groups");
+  box.innerHTML = "";
+  for (const [label, members] of groups) {
+    const heading = document.createElement("div");
+    heading.className = "group-label";
+    heading.textContent = label;
+    const grid = document.createElement("div");
+    grid.className = "spots";
+    for (const slot of members) {
+      const count = occupancyOf(slot);
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "spot";
+      b.textContent = spotLabel(slot);
+      if (count) {
+        const dots = document.createElement("span");
+        dots.className = "dots";
+        dots.setAttribute("aria-hidden", "true");
+        dots.textContent = "●".repeat(count);
+        b.append(dots);
+      }
+      b.disabled = !isAvailable(slot) || state.sending;
+      b.setAttribute("aria-pressed", String(state.spot === slot));
+      b.setAttribute("aria-label", w.spotLabel(u, spotLabel(slot), count));
+      b.addEventListener("click", () => {
+        if (state.spot !== slot) state.claim = null;
+        state.spot = slot;
+        state.sendError = false;
+        render();
+      });
+      grid.append(b);
+    }
+    box.append(heading, grid);
+  }
+}
+
+function renderDone(w, u, n) {
+  const got = w.where(u, spotLabel(state.result.got));
+  $("done-heading").textContent = w.doneHeading;
+  $("done-where").textContent = w.doneWhere(n, got);
+  const moved = Number(state.result.asked) !== Number(state.result.got);
+  $("done-moved").hidden = !moved;
+  if (moved) $("done-moved").textContent = w.moved(capitalise(w.where(u, spotLabel(state.result.asked))), got);
+  $("another").textContent = w.another;
+}
+
+function capitalise(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// --- loading the race -----------------------------------------------------------
+
+async function load() {
+  state.phase = "loading";
+  render();
+  let response;
+  try {
+    response = await fetch(`/api/events/${encodeURIComponent(code)}`, { cache: "no-store" });
+  } catch (_) {
+    return fail("loadError");
+  }
+  if (response.status === 404) return fail("notFound");
+  if (!response.ok) return fail("loadError");
+  state.event = await response.json();
+
+  if (!state.event.submissions_open) return fail("closed");
+  if (!state.event.slots.some(isAvailable)) return fail("full");
+  if (state.spot && !isAvailable(state.spot)) state.spot = null;
+  state.previous = store(`cheers:sent:${code}`);
+  state.phase = "form";
+  render();
+}
+
+function fail(message) {
+  state.phase = "error";
+  state.message = message;
+  render();
+}
+
+// --- recording ------------------------------------------------------------------
+
+async function startRecording() {
+  state.recError = null;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined") {
+    state.recError = "noMic";
+    return render();
+  }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (_) {
+    state.recError = "micDenied";
+    return render();
+  }
+
+  const recorder = new MediaRecorder(stream);
+  const chunks = [];
+  const started = performance.now();
+  const tick = setInterval(() => {
+    const elapsed = (performance.now() - started) / 1000;
+    state.secondsLeft = Math.max(0, Math.ceil(MAX_SECONDS - elapsed));
+    render();
+  }, 200);
+  const limit = setTimeout(() => recorder.state !== "inactive" && recorder.stop(), MAX_SECONDS * 1000);
+
+  recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+  recorder.onstop = async () => {
+    clearInterval(tick);
+    clearTimeout(limit);
+    stream.getTracks().forEach((track) => track.stop());   // turns the mic indicator off
+    state.recorder = null;
+    state.recState = "processing";
+    render();
+    try {
+      const wav = await toWav(new Blob(chunks, { type: recorder.mimeType || "audio/mp4" }));
+      if (wav.seconds < MIN_SECONDS) {
+        state.recState = "idle";
+        state.recError = "tooShort";
+      } else {
+        useRecording(wav);
+      }
+    } catch (_) {
+      state.recState = "idle";
+      state.recError = "convertError";
+    }
+    render();
+  };
+
+  state.recorder = recorder;
+  state.recState = "recording";
+  state.secondsLeft = MAX_SECONDS;
+  recorder.start();
+  render();
+}
+
+function useRecording(wav) {
+  if (state.recording) URL.revokeObjectURL(state.recording.url);
+  state.recording = { ...wav, url: URL.createObjectURL(wav.blob) };
+  // The preview plays the converted file, so what they hear is what's sent.
+  $("preview").src = state.recording.url;
+  state.recState = "ready";
+  state.sendError = false;
+}
+
+function discardRecording() {
+  if (state.recording) URL.revokeObjectURL(state.recording.url);
+  state.recording = null;
+  $("preview").removeAttribute("src");
+  state.recState = "idle";
+  state.recError = null;
+}
+
+// Whatever the browser recorded → 16 kHz mono 16-bit WAV, at most MAX_SECONDS.
+// Decoding in a 16 kHz context has the browser do the resampling, with proper
+// filtering. Quiet recordings are brought up to a consistent level, since
+// they'll be heard over music on a busy street.
+async function toWav(blob) {
+  const bytes = await blob.arrayBuffer();
+  const context = new OfflineAudioContext(1, 1, RATE);
+  const audio = await new Promise((resolve, reject) => {
+    const p = context.decodeAudioData(bytes, resolve, reject);   // callbacks for older Safari
+    if (p && p.catch) p.catch(reject);
+  });
+
+  const length = Math.min(audio.length, RATE * MAX_SECONDS);
+  const mono = new Float32Array(length);
+  for (let c = 0; c < audio.numberOfChannels; c++) {
+    const data = audio.getChannelData(c);
+    for (let i = 0; i < length; i++) mono[i] += data[i] / audio.numberOfChannels;
+  }
+
+  let peak = 0;
+  for (let i = 0; i < length; i++) peak = Math.max(peak, Math.abs(mono[i]));
+  const gain = peak > 0 ? Math.min(0.9 / peak, 4) : 1;
+
+  const buffer = new ArrayBuffer(44 + length * 2);
+  const view = new DataView(buffer);
+  const text = (offset, s) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); };
+  text(0, "RIFF");
+  view.setUint32(4, 36 + length * 2, true);
+  text(8, "WAVE");
+  text(12, "fmt ");
+  view.setUint32(16, 16, true);          // format chunk size
+  view.setUint16(20, 1, true);           // PCM
+  view.setUint16(22, 1, true);           // mono
+  view.setUint32(24, RATE, true);
+  view.setUint32(28, RATE * 2, true);    // bytes per second
+  view.setUint16(32, 2, true);           // bytes per sample
+  view.setUint16(34, 16, true);          // bits per sample
+  text(36, "data");
+  view.setUint32(40, length * 2, true);
+  for (let i = 0; i < length; i++) {
+    const s = Math.max(-1, Math.min(1, mono[i] * gain));
+    view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+  return { blob: new Blob([buffer], { type: "audio/wav" }), seconds: length / RATE };
+}
+
+// --- sending --------------------------------------------------------------------
+
+// Three steps: hold a seat, upload the recording straight to storage, then
+// tell the API it's there. Until the last step the runner never sees it.
+async function send() {
+  const sender = $("name").value.trim();
+  state.sending = true;
+  state.sendError = false;
+  render();
+  try {
+    if (!state.claim) {
+      const claimed = await fetch(`/api/events/${encodeURIComponent(code)}/claims`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ preferred: state.spot, sender }),
+      });
+      if (claimed.status === 409 || claimed.status === 404) {
+        // Closed or filled up since the page loaded: reloading shows which.
+        state.sending = false;
+        return load();
+      }
+      if (!claimed.ok) throw new Error(`claim ${claimed.status}`);
+      state.claim = { ...(await claimed.json()), asked: state.spot };
+    }
+
+    const put = await fetch(state.claim.upload_url, {
+      method: "PUT",
+      headers: { "Content-Type": "audio/wav" },
+      body: state.recording.blob,
+    });
+    // 409 means an earlier attempt's upload did arrive; finishing is still right.
+    if (!put.ok && put.status !== 409) throw new Error(`upload ${put.status}`);
+
+    const finished = await completeClaim(state.claim.cheer_id);
+    state.result = { asked: state.claim.asked, got: finished.slot };
+    store(`cheers:sent:${code}`, String(finished.slot));
+    state.claim = null;
+    state.sending = false;
+    state.phase = "done";
+    render();
+  } catch (_) {
+    state.sending = false;
+    state.sendError = true;
+    render();
+  }
+}
+
+async function completeClaim(cheerId) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const response = await fetch(`/api/claims/${cheerId}/complete`, { method: "POST" });
+    if (response.ok) return response.json();
+    if (response.status === 404) {
+      // The claim lapsed (a very slow upload): start over with a new one.
+      state.claim = null;
+      throw new Error("claim lapsed");
+    }
+    await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+  }
+  throw new Error("complete failed");
+}
+
+// --- wiring ---------------------------------------------------------------------
+
+for (const b of document.querySelectorAll(".lang button")) {
+  b.addEventListener("click", () => {
+    state.lang = b.dataset.lang;
+    store("cheers:lang", state.lang);
+    render();
+  });
+}
+$("rec").addEventListener("click", () => {
+  if (state.recorder) state.recorder.stop();
+  else startRecording();
+});
+$("again").addEventListener("click", () => {
+  discardRecording();
+  render();
+});
+$("name").addEventListener("input", () => {
+  state.sendError = false;
+  render();
+});
+$("send").addEventListener("click", send);
+$("another").addEventListener("click", () => {
+  discardRecording();
+  state.spot = null;
+  state.result = null;
+  load();
+});
+
+load();
+</script>
+</body>
+</html>

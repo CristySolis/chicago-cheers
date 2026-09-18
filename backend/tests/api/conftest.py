@@ -106,13 +106,15 @@ def make_event(her: Runner) -> MakeEvent:
             "slots": CHICAGO,
             "submissions_open": True,
             "share_code": uuid.uuid4().hex[:16],
+            "runner_name": "Cristy",
             **overrides,
         }
         with psycopg.connect(LOCAL["DB_URL"]) as conn:
             inserted = conn.execute(
-                "insert into events (owner_id, name, unit, slots, submissions_open, share_code)"
+                "insert into events"
+                " (owner_id, name, unit, slots, submissions_open, share_code, runner_name)"
                 " values (%(owner_id)s, %(name)s, %(unit)s, %(slots)s, %(submissions_open)s,"
-                " %(share_code)s) returning id",
+                " %(share_code)s, %(runner_name)s) returning id",
                 row,
             ).fetchone()
         assert inserted is not None
