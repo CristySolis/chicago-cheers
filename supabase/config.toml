@@ -116,12 +116,13 @@ enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 
-# Uncomment to configure local storage buckets
-# [storage.buckets.images]
-# public = false
-# file_size_limit = "50MiB"
-# allowed_mime_types = ["image/png", "image/jpeg"]
-# objects_path = "./images"
+# Supporters' recordings. Private: only the runner, through the API, can hear
+# them. WAV only, because the sender page encodes WAV itself — browsers record
+# in formats iPhones can't all play. 2 MiB comfortably holds 25 seconds.
+[storage.buckets.cheers]
+public = false
+file_size_limit = "2MiB"
+allowed_mime_types = ["audio/wav"]
 
 # Allow connections via S3 compatible clients
 [storage.s3_protocol]
