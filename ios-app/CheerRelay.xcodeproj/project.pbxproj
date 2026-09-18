@@ -374,7 +374,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 264901A5F64108CBE7349470 /* Pods-CheerRelay.release.xcconfig */;
 			buildSettings = {
-				CHEERS_API_URL = "http://127.0.0.1:8000";
+				CHEERS_API_URL = "https://chicago-cheers.vercel.app";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
 				CURRENT_PROJECT_VERSION = 1;
