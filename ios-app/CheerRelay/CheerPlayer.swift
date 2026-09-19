@@ -12,8 +12,12 @@ final class CheerPlayer: NSObject, ObservableObject {
     @Published private(set) var nowPlaying: String?
     @Published private(set) var problem: String?
 
+    /// Called as each cheer actually starts — which can be a little after its
+    /// mile is passed, if another is still playing. Not called for the sound check.
+    var onCheerStarted: ((_ sender: String, _ mile: Double) -> Void)?
+
     private var player: AVAudioPlayer?
-    private var queue: [(audio: URL, sender: String)] = []
+    private var queue: [(audio: URL, sender: String, mile: Double?)] = []
 
     override init() {
         super.init()
@@ -24,7 +28,7 @@ final class CheerPlayer: NSObject, ObservableObject {
     /// speaking: synced recordings are named by id, not by sender.
     func play(_ cheers: [Cheer]) {
         let playable = cheers.compactMap { cheer in
-            cheer.localURL.map { (audio: $0, sender: cheer.label) }
+            cheer.localURL.map { (audio: $0, sender: cheer.label, mile: Optional(cheer.mile)) }
         }
         guard !playable.isEmpty else { return }
         queue.append(contentsOf: playable)
@@ -37,7 +41,7 @@ final class CheerPlayer: NSObject, ObservableObject {
     /// ducking — so the headphones and volume can be checked before the start.
     func playSoundCheck() {
         guard let chime = Self.soundCheck() else { return }
-        queue.append((audio: chime, sender: "Sound check"))
+        queue.append((audio: chime, sender: "Sound check", mile: nil))
         if player == nil {
             playNext()
         }
@@ -92,6 +96,9 @@ final class CheerPlayer: NSObject, ObservableObject {
             player = audio
             nowPlaying = next.sender
             problem = nil
+            if let mile = next.mile {
+                onCheerStarted?(next.sender, mile)
+            }
         } catch {
             // One unreadable file must not stop the rest of the race.
             problem = "Couldn't play \(next.sender)'s cheer: \(error.localizedDescription)"
