@@ -1,119 +1,145 @@
-# Chicago Cheer Squad
+# Chicago Cheers
 
-Full-screen, big-text cheer messages on your Garmin watch during the marathon,
-compatible with running Runna's guided workout.
+Friends and family each claim a mile of the Chicago Marathon (11 October 2026)
+and record a cheer of up to 25 seconds. On race day, Cristy's iPhone plays
+each cheer when Cristy reaches its mile, turning the music down while it
+plays. Everything is downloaded to the phone beforehand, so the race itself
+needs no signal.
 
 ```
-Friends/family --> Google Form --> Google Sheet (published as CSV)
-                                          |
-                                    iOS CheerRelay app (polls every 15s)
-                                          |
-                              Garmin Connect IQ Mobile SDK (Bluetooth)
-                                          |
-                         "Cheer Squad" data field on your watch
-                    (full-screen message + vibrate, lives inside
-                     Runna's native Run activity screens)
+Supporter's phone            The internet                    Cristy's iPhone
+
+ sender page ────────────▶  API (Python, on Vercel)  ◀────────  race app: Sync
+ (pick mile, name,           ├─ database: who, which mile       (before the race)
+  record, send)              └─ storage: the recordings ──────▶
+      │                              ▲                          race day: GPS → mile
+      └── recording uploads ─────────┘                          → play the cheer
+          straight to storage
 ```
 
-This is a starting scaffold, not a tested build — neither the Connect IQ
-simulator nor Xcode exist in the environment that wrote this, so **both
-halves need to be opened, compiled, and iterated on their native tools**
-before race day. Budget more than one evening for this.
+The database and storage are [Supabase](https://supabase.com); the API and the
+sender page are hosted on [Vercel](https://vercel.com) at
+`https://chicago-cheers.vercel.app`. A fuller explanation with diagrams is in the
+[architecture doc](https://claude.ai/code/artifact/bcfec7d7-4a3e-4ef8-9b1b-7a55dac6068d).
 
----
+## What's where
 
-## 1. Message intake: Google Form + Sheet
+| Folder | What it is |
+|---|---|
+| `backend/` | The API and the sender page (`cheers/web/sender.html`). Python, Poetry. |
+| `supabase/` | Database tables (`migrations/`) and storage settings (`config.toml`). Tables and rules only — all logic lives in `backend/`. |
+| `ios-app/` | The race app, CheerRelay (SwiftUI). |
+| `watch-app/` | Leftover from the first design (text cheers on a Garmin watch). Not used: the Forerunner 935 can't do it. |
 
-1. Go to [forms.google.com](https://forms.google.com), create a form named
-   "Cheer for Cristy" with two **short answer** questions: `Name` and
-   `Message`. Turn off "Collect email addresses."
-2. Open the linked response Sheet (Responses tab → green Sheets icon).
-3. In the Sheet: **File → Share → Publish to web**. Choose the responses
-   sheet/tab, set format to **Comma-separated values (.csv)**, click Publish.
-4. Copy the resulting URL — it looks like
-   `https://docs.google.com/spreadsheets/d/e/<long id>/pub?output=csv`.
-5. Paste it into `ios-app/CheerRelay/Config.swift` as `sheetCSVURL`.
-6. Share the **Form** link (not the Sheet) with friends/family — a QR code
-   on your bib or a group text works well.
+## Running the race
 
-The Sheet will have columns `Timestamp | Name | Message` in that order —
-`SheetPoller.swift` expects exactly that.
+### Collecting cheers
 
-## 2. Watch app (Connect IQ / Monkey C)
+Send supporters the link `https://chicago-cheers.vercel.app/cheer/<share_code>`.
+The `share_code` is on the race's row in Supabase (**Table Editor → events**).
 
-1. Install the [Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/)
-   and its VS Code extension ("Monkey C"). Make sure it's a recent SDK —
-   your Forerunner 935 (`fr935` in the manifest) is an old device (Connect
-   IQ API level 3.1, from 2017); older SDK releases sometimes drop support
-   for it, so if the device doesn't show up as a build target, update the
-   SDK's device list from within VS Code's Monkey C panel.
-2. Open `watch-app/` as the project root in VS Code.
-3. **Use the visual manifest editor for the background service part.**
-   Open `manifest.xml` in VS Code's Monkey C manifest editor UI and confirm
-   there's a "Background Service" toggle enabled for this app — I wrote a
-   best-guess `<iq:background/>` element by hand since I couldn't verify
-   the exact syntax against live docs; let the SDK regenerate it correctly
-   if the editor shows something different or the build complains about it.
-4. Regenerate the app UUID: run `uuidgen` (Mac terminal) and replace the
-   `id="..."` value in `manifest.xml`. **Copy that same UUID** into
-   `ios-app/CheerRelay/Config.swift`'s `watchAppId` — they must match exactly.
-5. Build → Run in Simulator first (`Monkey C: Run` in VS Code), targeting
-   the Forerunner 935 profile, to sanity check it draws without crashing
-   (it'll show "Waiting for cheers"). This is also where you'll catch any
-   API-level-3.1 incompatibilities I might have missed.
-6. Build for device, connect your watch via USB, and copy the generated
-   `.prg` into the watch's `GARMIN/APPS` folder (VS Code's "Build for
-   Device" + "Export" does this, or drag-and-drop over USB).
-7. On the watch: **Run → Workouts → Do Workout** (or a plain Run) →
-   hold/press to edit data screens → add screen → find "Cheer Squad" →
-   add it as its own full screen (pick the 1-field layout for max size).
+The page follows each phone's language (English or Spanish, with a switch). A
+supporter picks a mile, types a name and records. Rules the page and API
+enforce:
 
-## 3. iOS relay app
+- One person per mile until every mile has a cheer; then a second person can
+  join any mile. Never more than two.
+- If someone takes a mile a moment before you, your cheer slides to the next
+  free one and the page says where it went.
+- Supporters never see each other's names or recordings.
 
-1. In Xcode: **File → New → Project → iOS App**, SwiftUI, name it
-   `CheerRelay`, and replace the generated files with everything in
-   `ios-app/CheerRelay/`.
-2. Add the Connect IQ Mobile SDK: `pod install` using the included
-   `Podfile` (needs CocoaPods — `sudo gem install cocoapods` if you don't
-   have it), then open the generated `.xcworkspace`, not `.xcodeproj`.
-3. Merge `Info.plist.snippet.xml`'s keys into the target's Info settings
-   (URL scheme, `LSApplicationQueriesSchemes`, background fetch mode).
-4. Double check `Config.watchAppId` matches the watch manifest's UUID (step
-   2.3 above), and `sheetCSVURL` matches your published Sheet link.
-5. Build to your iPhone (needs a free or paid Apple Developer account —
-   free works fine for installing to your own device via Xcode).
-6. Make sure Garmin Connect Mobile is installed and your watch is already
-   paired to it (this app rides on that existing Bluetooth pairing).
-7. Open CheerRelay, tap **Connect**, pick your watch from Garmin's device
-   picker.
+### Looking after cheers (Supabase dashboard)
 
-## 4. Test before race day — don't skip this
+Each cheer is a **row** in the `cheers` table plus an **audio file** in the
+`cheers` storage bucket. The row is what counts: it holds the mile and is what
+the phone downloads the list from.
 
-- [ ] Submit a test entry on the Google Form from a different phone; confirm
-      it appears in CheerRelay's list within ~15s and the watch vibrates.
-- [ ] Confirm the message renders full-screen, readable, on the actual watch
-      (not just the simulator) — check both a short ("GO!") and a long
-      (200+ character) message for wrapping/shrinking.
-- [ ] Start an actual Runna workout on the watch, swipe to the Cheer Squad
-      screen, send a test cheer from another screen, confirm the buzz still
-      fires and the message is waiting when you swipe over.
-- [ ] Leave CheerRelay running (screen off, phone in an armband/pocket) for
-      30+ minutes and confirm messages still relay — iOS background timing
-      is the least predictable part of this whole chain, and Chicago is a
-      4+ hour day for most runners.
-- [ ] Battery check: run a real ~90 minute test with GPS activity + Bluetooth
-      relay running the whole time, watch both phone and watch battery drain.
-- [ ] Send several cheers in a burst (friends/family will likely cluster
-      messages at the same mile markers) and confirm the "+N more waiting"
-      queue behaves and nothing gets dropped or overwrites unseen.
+- **Delete a cheer:** delete its row (**Table Editor → cheers**), then its file
+  (**Storage → cheers →** the race's folder). Deleting only the file would leave
+  the mile taken and the phone trying to download something that's gone.
+- **Stop taking cheers:** set `submissions_open` to `false` on the race's row
+  in **events**. The page then says cheers are closed.
+- **The name on the page:** `runner_name` on the race's row.
+- Never delete the race's row in **events**: that breaks the link and sync.
 
-## Known limitations (by design, see earlier discussion)
+### On the phone
 
-- The message can't force itself onto whatever screen you're currently
-  looking at — Connect IQ doesn't allow a data field to do that while
-  Runna's native Run activity is in the foreground. You'll feel a buzz and
-  need one swipe to see it. (Building your own full activity app instead of
-  Runna's would remove this limitation, at the cost of losing Runna's
-  on-watch guidance — a bigger project if you want to revisit it.)
-- Forerunners don't support distinct vibration *patterns*, just a plain
-  buzz, so "new cheer" feels the same as any other watch buzz.
+1. **Sign in** once with the runner account (created in Supabase under
+   **Authentication**).
+2. Tap **Sync** whenever new cheers arrive. It downloads them and shows the next
+   one coming up. A final sync the night before the race is the one that
+   matters.
+3. On race day, open the app, tap **Start** at the start line, lock the phone. Sync
+   is switched off while a run is going.
+
+A cheer deleted in Supabase disappears from the phone at the next sync.
+
+## Building the phone app
+
+Needs a Mac with Xcode and CocoaPods, and the iPhone connected by cable.
+
+1. Open **`ios-app/CheerRelay.xcworkspace`** (the workspace, not the
+   `.xcodeproj`).
+2. Pick which server the app talks to. The build configuration decides it:
+   - **Debug** → the API running on this Mac (`http://127.0.0.1:8000`), for
+     development.
+   - **Release** → the live API. **Use this for the real phone.**
+
+   In Xcode: **Product → Scheme → Edit Scheme… → Run → Build Configuration**.
+3. Choose the iPhone at the top of the window and press **Run** (▶).
+
+With a free Apple account the installed app **stops opening after 7 days**.
+Rebuild it on **9 or 10 October** so it's valid through race day. Synced
+cheers survive a rebuild.
+
+## Developing the backend
+
+Needs Python 3.12, Poetry 1.8, Node (for `npx supabase`) and Docker Desktop.
+
+```bash
+cd backend && poetry install
+```
+
+Start a local copy of Supabase (database, storage, sign-in) from the repo root:
+
+```bash
+npx supabase start
+```
+
+Then, from `backend/`:
+
+| Command | Does |
+|---|---|
+| `./serve-local.sh` | Runs the API and page on http://127.0.0.1:8000 against local Supabase. |
+| `./lint.sh` | Formatting, import rules, type checks and the fast tests. Run before every commit. |
+| `./integration-tests.sh` | The API tests, against local Supabase. |
+| `./export-requirements.sh` | Regenerates `requirements.txt` after any dependency change (Vercel reads that file, not Poetry's). |
+
+To try the sender page locally, add a race in local Supabase's Studio
+(http://127.0.0.1:54323) and open `http://127.0.0.1:8000/cheer/<its share_code>`.
+
+## Deploying
+
+Vercel deploys `main` automatically: its project uses `backend/` as the root
+directory, with these environment variables set in Vercel's settings:
+`DATABASE_URL` (Supabase's transaction pooler), `SUPABASE_URL`,
+`SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_KEY`. Secrets live only there, never
+in the repo.
+
+**Database changes go out before the code that uses them.** A new migration in
+`supabase/migrations/` is applied to the live database with
+
+```bash
+npx supabase db push --linked
+```
+
+and only then is the pull request merged. Keep migrations additive (new
+columns nullable), so the code already live keeps working in between.
+
+## Before race day
+
+- [ ] Delete the test cheers so every mile is free for real people.
+- [ ] Share the link with supporters; close submissions a day or two before.
+- [ ] Rebuild the app on 9–10 October (Release), sign in, sync.
+- [ ] A long run with the app, phone locked, to check battery and GPS timing.
+- [ ] Race morning: final sync on Wi-Fi, headphones connected, start at the line.
