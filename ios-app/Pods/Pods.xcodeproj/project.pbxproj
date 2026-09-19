@@ -20,9 +20,12 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		020822A70CB1B802E9872C34330D7417 /* Pods-CheerRelay-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 3221A6A48837F34E4B4C66FA3A89B2A3 /* Pods-CheerRelay-dummy.m */; };
-		451A5BB6716974D83DCD5C66011DD687 /* Pods-CheerRelay-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = BA7F529F0035EF06644E0476917FE2F1 /* Pods-CheerRelay-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		020822A70CB1B802E9872C34330D7417 /* Pods-CheerRelay-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 8298C4C20955FDE46447394BECF56FAB /* Pods-CheerRelay-dummy.m */; };
+		451A5BB6716974D83DCD5C66011DD687 /* Pods-CheerRelay-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = E84E9C6B0B0809AE639ABE83A1DE7735 /* Pods-CheerRelay-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		7958DB784DBC8E53B59CD52458FD7CE1 /* Pods-CheerRelayTests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 127FED80CD2D3649DFB3B231AB18E09D /* Pods-CheerRelayTests-dummy.m */; };
+		88476DD41713544D36FD75B9C1E2907F /* Pods-CheerRelayTests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = D9E1A7D65A9310AEEB1CC96010322111 /* Pods-CheerRelayTests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CB15B4A776B07F2B40F8BA4CBACD5990 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CB74A84DF62E0DBFFA4715EF79E08A1 /* Foundation.framework */; };
+		E48D2849AB4380F2D42529B17138A735 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CB74A84DF62E0DBFFA4715EF79E08A1 /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,28 +36,52 @@
 			remoteGlobalIDString = 3255931561DC84A3826DBDD9F0B03D20;
 			remoteInfo = ConnectIQ;
 		};
+		5C3414B78DDEEA68F6FA3F2473C8DCF9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A728ED258B0003AF564F609643B90D6;
+			remoteInfo = "Pods-CheerRelay";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0132CB8E659E6AFC83EA85A04D5992C6 /* Pods-CheerRelay.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-CheerRelay.release.xcconfig"; sourceTree = "<group>"; };
-		04F84165392CD162C70EF07BBA41D083 /* Pods-CheerRelay-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-CheerRelay-acknowledgements.plist"; sourceTree = "<group>"; };
-		0798C83699965C70EFB881C07D6A5388 /* Pods-CheerRelay-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-CheerRelay-frameworks.sh"; sourceTree = "<group>"; };
 		0CA9681E9CC6F7803469BA64F4661688 /* ConnectIQ.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = ConnectIQ.debug.xcconfig; sourceTree = "<group>"; };
+		113A95CED73DFD8A817F92B98564E02D /* Pods-CheerRelay-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-CheerRelay-frameworks.sh"; sourceTree = "<group>"; };
+		127FED80CD2D3649DFB3B231AB18E09D /* Pods-CheerRelayTests-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-CheerRelayTests-dummy.m"; sourceTree = "<group>"; };
 		17A162D03E10A03B87B92CF14FEB1D3F /* Pods-CheerRelay */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-CheerRelay"; path = Pods_CheerRelay.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2CB74A84DF62E0DBFFA4715EF79E08A1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		3221A6A48837F34E4B4C66FA3A89B2A3 /* Pods-CheerRelay-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-CheerRelay-dummy.m"; sourceTree = "<group>"; };
+		339830068916DB59300AA7DDB3F32DFA /* Pods-CheerRelayTests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-CheerRelayTests-acknowledgements.plist"; sourceTree = "<group>"; };
+		37A465356A41BAE6963668159ED5815B /* Pods-CheerRelay.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-CheerRelay.release.xcconfig"; sourceTree = "<group>"; };
+		3C1EF83770F503FC530D511A86793D6E /* Pods-CheerRelayTests */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-CheerRelayTests"; path = Pods_CheerRelayTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3EDD803A74B93424FEACD37B7704E73B /* ConnectIQ.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; path = ConnectIQ.xcframework; sourceTree = "<group>"; };
+		47BAA035653C3202C304A8AE00FE6CE1 /* Pods-CheerRelayTests.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-CheerRelayTests.modulemap"; sourceTree = "<group>"; };
+		5402B2044C21A103E9B0C9756D79B14D /* Pods-CheerRelayTests-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-CheerRelayTests-Info.plist"; sourceTree = "<group>"; };
+		5ACED1C1E41FB83A9B65C566E0A85790 /* Pods-CheerRelay.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-CheerRelay.modulemap"; sourceTree = "<group>"; };
 		61258779049559A3C8BFDB8CF419D8D9 /* ConnectIQ.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = ConnectIQ.release.xcconfig; sourceTree = "<group>"; };
-		8C15E65AC347EBBF0AB97807C7FDB265 /* Pods-CheerRelay.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-CheerRelay.modulemap"; sourceTree = "<group>"; };
+		703C6C92693024780B13F87955C640CA /* Pods-CheerRelay.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-CheerRelay.debug.xcconfig"; sourceTree = "<group>"; };
+		8298C4C20955FDE46447394BECF56FAB /* Pods-CheerRelay-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-CheerRelay-dummy.m"; sourceTree = "<group>"; };
+		83F063CC0E88FBFB3C638875FB4D21EC /* Pods-CheerRelayTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-CheerRelayTests.debug.xcconfig"; sourceTree = "<group>"; };
+		8E91F0A31033B9376D9B0EEFC894A84C /* Pods-CheerRelay-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-CheerRelay-Info.plist"; sourceTree = "<group>"; };
 		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		9E85F07ACE0499835384440DB25D30FD /* Pods-CheerRelay-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-CheerRelay-acknowledgements.markdown"; sourceTree = "<group>"; };
-		B6CCFACCD260979700FBDC8049F60074 /* Pods-CheerRelay.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-CheerRelay.debug.xcconfig"; sourceTree = "<group>"; };
-		BA7F529F0035EF06644E0476917FE2F1 /* Pods-CheerRelay-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-CheerRelay-umbrella.h"; sourceTree = "<group>"; };
-		BEB3DF2FAED28879F66484AAC25626FA /* Pods-CheerRelay-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-CheerRelay-Info.plist"; sourceTree = "<group>"; };
 		C42C9CE611902B807D2F59C690191880 /* ConnectIQ-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "ConnectIQ-xcframeworks.sh"; sourceTree = "<group>"; };
+		CEAF04E89921DDE46BBF517052848D14 /* Pods-CheerRelay-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-CheerRelay-acknowledgements.plist"; sourceTree = "<group>"; };
+		D9E1A7D65A9310AEEB1CC96010322111 /* Pods-CheerRelayTests-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-CheerRelayTests-umbrella.h"; sourceTree = "<group>"; };
+		DE6AD7EEEFA54EF7004353163CC7D24F /* Pods-CheerRelay-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-CheerRelay-acknowledgements.markdown"; sourceTree = "<group>"; };
+		DEEE01976324D187F5ACA2D1D4ECDC17 /* Pods-CheerRelayTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-CheerRelayTests.release.xcconfig"; sourceTree = "<group>"; };
+		E5E6245B19F26FEE55E1E4A303C62B75 /* Pods-CheerRelayTests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-CheerRelayTests-acknowledgements.markdown"; sourceTree = "<group>"; };
+		E84E9C6B0B0809AE639ABE83A1DE7735 /* Pods-CheerRelay-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-CheerRelay-umbrella.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		C8F35BBFBA0C1D8FFE258EF62C9EA29D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E48D2849AB4380F2D42529B17138A735 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D94F85A597EC00E0B1F56424EC4E73FB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -76,14 +103,6 @@
 			path = ConnectIQ;
 			sourceTree = "<group>";
 		};
-		10E12FB7E8ADFB6B83E47C09930F776C /* Targets Support Files */ = {
-			isa = PBXGroup;
-			children = (
-				FAB7F79FCE86FCA9AB43BB06D4B5BDE0 /* Pods-CheerRelay */,
-			);
-			name = "Targets Support Files";
-			sourceTree = "<group>";
-		};
 		19DF2CAE9F2A9D3C28F396B4E3023E9A /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -103,14 +122,6 @@
 			path = "../Target Support Files/ConnectIQ";
 			sourceTree = "<group>";
 		};
-		6D4640E76755E6AF96C860286790F115 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				17A162D03E10A03B87B92CF14FEB1D3F /* Pods-CheerRelay */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		7AECBA61365544F357B06DE1C8710425 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
@@ -119,15 +130,66 @@
 			name = iOS;
 			sourceTree = "<group>";
 		};
+		B2BAFB440729833253AA7176A6A75A7C /* Targets Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				C661B97D7CB8638FE67B27B846E5F98C /* Pods-CheerRelay */,
+				B90CF236CD11038531F3B51911C66949 /* Pods-CheerRelayTests */,
+			);
+			name = "Targets Support Files";
+			sourceTree = "<group>";
+		};
+		B90CF236CD11038531F3B51911C66949 /* Pods-CheerRelayTests */ = {
+			isa = PBXGroup;
+			children = (
+				47BAA035653C3202C304A8AE00FE6CE1 /* Pods-CheerRelayTests.modulemap */,
+				E5E6245B19F26FEE55E1E4A303C62B75 /* Pods-CheerRelayTests-acknowledgements.markdown */,
+				339830068916DB59300AA7DDB3F32DFA /* Pods-CheerRelayTests-acknowledgements.plist */,
+				127FED80CD2D3649DFB3B231AB18E09D /* Pods-CheerRelayTests-dummy.m */,
+				5402B2044C21A103E9B0C9756D79B14D /* Pods-CheerRelayTests-Info.plist */,
+				D9E1A7D65A9310AEEB1CC96010322111 /* Pods-CheerRelayTests-umbrella.h */,
+				83F063CC0E88FBFB3C638875FB4D21EC /* Pods-CheerRelayTests.debug.xcconfig */,
+				DEEE01976324D187F5ACA2D1D4ECDC17 /* Pods-CheerRelayTests.release.xcconfig */,
+			);
+			name = "Pods-CheerRelayTests";
+			path = "Target Support Files/Pods-CheerRelayTests";
+			sourceTree = "<group>";
+		};
+		C661B97D7CB8638FE67B27B846E5F98C /* Pods-CheerRelay */ = {
+			isa = PBXGroup;
+			children = (
+				5ACED1C1E41FB83A9B65C566E0A85790 /* Pods-CheerRelay.modulemap */,
+				DE6AD7EEEFA54EF7004353163CC7D24F /* Pods-CheerRelay-acknowledgements.markdown */,
+				CEAF04E89921DDE46BBF517052848D14 /* Pods-CheerRelay-acknowledgements.plist */,
+				8298C4C20955FDE46447394BECF56FAB /* Pods-CheerRelay-dummy.m */,
+				113A95CED73DFD8A817F92B98564E02D /* Pods-CheerRelay-frameworks.sh */,
+				8E91F0A31033B9376D9B0EEFC894A84C /* Pods-CheerRelay-Info.plist */,
+				E84E9C6B0B0809AE639ABE83A1DE7735 /* Pods-CheerRelay-umbrella.h */,
+				703C6C92693024780B13F87955C640CA /* Pods-CheerRelay.debug.xcconfig */,
+				37A465356A41BAE6963668159ED5815B /* Pods-CheerRelay.release.xcconfig */,
+			);
+			name = "Pods-CheerRelay";
+			path = "Target Support Files/Pods-CheerRelay";
+			sourceTree = "<group>";
+		};
 		CF1408CF629C7361332E53B88F7BD30C = {
 			isa = PBXGroup;
 			children = (
 				9D940727FF8FB9C785EB98E56350EF41 /* Podfile */,
 				D210D550F4EA176C3123ED886F8F87F5 /* Frameworks */,
 				19DF2CAE9F2A9D3C28F396B4E3023E9A /* Pods */,
-				6D4640E76755E6AF96C860286790F115 /* Products */,
-				10E12FB7E8ADFB6B83E47C09930F776C /* Targets Support Files */,
+				D07544D377A4044934F2878986DF4BF5 /* Products */,
+				B2BAFB440729833253AA7176A6A75A7C /* Targets Support Files */,
 			);
+			sourceTree = "<group>";
+		};
+		D07544D377A4044934F2878986DF4BF5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				17A162D03E10A03B87B92CF14FEB1D3F /* Pods-CheerRelay */,
+				3C1EF83770F503FC530D511A86793D6E /* Pods-CheerRelayTests */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		D210D550F4EA176C3123ED886F8F87F5 /* Frameworks */ = {
@@ -146,23 +208,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		FAB7F79FCE86FCA9AB43BB06D4B5BDE0 /* Pods-CheerRelay */ = {
-			isa = PBXGroup;
-			children = (
-				8C15E65AC347EBBF0AB97807C7FDB265 /* Pods-CheerRelay.modulemap */,
-				9E85F07ACE0499835384440DB25D30FD /* Pods-CheerRelay-acknowledgements.markdown */,
-				04F84165392CD162C70EF07BBA41D083 /* Pods-CheerRelay-acknowledgements.plist */,
-				3221A6A48837F34E4B4C66FA3A89B2A3 /* Pods-CheerRelay-dummy.m */,
-				0798C83699965C70EFB881C07D6A5388 /* Pods-CheerRelay-frameworks.sh */,
-				BEB3DF2FAED28879F66484AAC25626FA /* Pods-CheerRelay-Info.plist */,
-				BA7F529F0035EF06644E0476917FE2F1 /* Pods-CheerRelay-umbrella.h */,
-				B6CCFACCD260979700FBDC8049F60074 /* Pods-CheerRelay.debug.xcconfig */,
-				0132CB8E659E6AFC83EA85A04D5992C6 /* Pods-CheerRelay.release.xcconfig */,
-			);
-			name = "Pods-CheerRelay";
-			path = "Target Support Files/Pods-CheerRelay";
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -171,6 +216,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				451A5BB6716974D83DCD5C66011DD687 /* Pods-CheerRelay-umbrella.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4C3EA646B77965F3B62C3298F9147FCE /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				88476DD41713544D36FD75B9C1E2907F /* Pods-CheerRelayTests-umbrella.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,6 +249,25 @@
 			productReference = 17A162D03E10A03B87B92CF14FEB1D3F /* Pods-CheerRelay */;
 			productType = "com.apple.product-type.framework";
 		};
+		6CEC15EBD7178E042C683EE049FFF512 /* Pods-CheerRelayTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CADD22CEA4B4D15F1FD905AA61222C76 /* Build configuration list for PBXNativeTarget "Pods-CheerRelayTests" */;
+			buildPhases = (
+				4C3EA646B77965F3B62C3298F9147FCE /* Headers */,
+				155E86740EE46E8769A2E71099E79B96 /* Sources */,
+				C8F35BBFBA0C1D8FFE258EF62C9EA29D /* Frameworks */,
+				645BE1D061750ACC1530755638391F4D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AD0D2E010B0B86B943C81E11DF9498AB /* PBXTargetDependency */,
+			);
+			name = "Pods-CheerRelayTests";
+			productName = Pods_CheerRelayTests;
+			productReference = 3C1EF83770F503FC530D511A86793D6E /* Pods-CheerRelayTests */;
+			productType = "com.apple.product-type.framework";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -216,17 +288,25 @@
 			mainGroup = CF1408CF629C7361332E53B88F7BD30C;
 			minimizedProjectReferenceProxies = 0;
 			preferredProjectObjectVersion = 100;
-			productRefGroup = 6D4640E76755E6AF96C860286790F115 /* Products */;
+			productRefGroup = D07544D377A4044934F2878986DF4BF5 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				3255931561DC84A3826DBDD9F0B03D20 /* ConnectIQ */,
 				1A728ED258B0003AF564F609643B90D6 /* Pods-CheerRelay */,
+				6CEC15EBD7178E042C683EE049FFF512 /* Pods-CheerRelayTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		645BE1D061750ACC1530755638391F4D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		866AE317B06ABB75DD8D829378457DA2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -257,6 +337,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		155E86740EE46E8769A2E71099E79B96 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7958DB784DBC8E53B59CD52458FD7CE1 /* Pods-CheerRelayTests-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		388E4ADD2DBA8492750898B972D142A1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -268,6 +356,12 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		AD0D2E010B0B86B943C81E11DF9498AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Pods-CheerRelay";
+			target = 1A728ED258B0003AF564F609643B90D6 /* Pods-CheerRelay */;
+			targetProxy = 5C3414B78DDEEA68F6FA3F2473C8DCF9 /* PBXContainerItemProxy */;
+		};
 		B1F793C246B971183FB670CB1C45E21C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = ConnectIQ;
@@ -316,7 +410,7 @@
 		};
 		2DFD72E0D00B500329EC46344659C22A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B6CCFACCD260979700FBDC8049F60074 /* Pods-CheerRelay.debug.xcconfig */;
+			baseConfigurationReference = 703C6C92693024780B13F87955C640CA /* Pods-CheerRelay.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_OBJC_WEAK = NO;
@@ -415,9 +509,49 @@
 			};
 			name = Release;
 		};
+		519D69A90E4F85210B261BF6089F037C /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DEEE01976324D187F5ACA2D1D4ECDC17 /* Pods-CheerRelayTests.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = "Target Support Files/Pods-CheerRelayTests/Pods-CheerRelayTests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-CheerRelayTests/Pods-CheerRelayTests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 		DC34898650DDC5ED45FF973B87B509E4 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0132CB8E659E6AFC83EA85A04D5992C6 /* Pods-CheerRelay.release.xcconfig */;
+			baseConfigurationReference = 37A465356A41BAE6963668159ED5815B /* Pods-CheerRelay.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_OBJC_WEAK = NO;
@@ -521,6 +655,45 @@
 			};
 			name = Debug;
 		};
+		F7EC3DD64BEAD2AC2A6D1D2EBA092DA9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 83F063CC0E88FBFB3C638875FB4D21EC /* Pods-CheerRelayTests.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = "Target Support Files/Pods-CheerRelayTests/Pods-CheerRelayTests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-CheerRelayTests/Pods-CheerRelayTests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -547,6 +720,15 @@
 			buildConfigurations = (
 				16530394DFFFB977C8FC485ACB61F3DC /* Debug */,
 				1E0604D5759A92DB6B469570F6BD70B5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CADD22CEA4B4D15F1FD905AA61222C76 /* Build configuration list for PBXNativeTarget "Pods-CheerRelayTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F7EC3DD64BEAD2AC2A6D1D2EBA092DA9 /* Debug */,
+				519D69A90E4F85210B261BF6089F037C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

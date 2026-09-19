@@ -3,6 +3,11 @@ platform :ios, '16.0'
 target 'CheerRelay' do
   use_frameworks!
   pod 'ConnectIQ'
+
+  # The tests run inside the app, so they only need to find its libraries.
+  target 'CheerRelayTests' do
+    inherit! :search_paths
+  end
 end
 
 # The ConnectIQ podspec declares iOS 12.0, below the 15.0 floor Xcode 27 accepts.
