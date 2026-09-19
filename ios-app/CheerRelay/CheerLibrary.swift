@@ -3,9 +3,8 @@ import Combine
 
 /// The cheers this phone is carrying, grouped by mile.
 ///
-/// Holds a `CheerSource` rather than reading files itself, so replacing the
-/// folder with the submission site's database later is a change of one
-/// initialiser argument.
+/// Holds a `CheerSource` rather than reading files itself, so where cheers
+/// come from can change without touching anything that plays them.
 @MainActor
 final class CheerLibrary: ObservableObject {
 
@@ -15,7 +14,7 @@ final class CheerLibrary: ObservableObject {
 
     private let source: CheerSource
 
-    init(source: CheerSource = LocalFolderSource()) {
+    init(source: CheerSource) {
         self.source = source
     }
 

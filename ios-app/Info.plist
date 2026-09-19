@@ -2,32 +2,21 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>cheersquad</string>
-			</array>
-		</dict>
-	</array>
 	<!-- Must live in this file: INFOPLIST_KEY_UIBackgroundModes is not one of
 	     the build settings Xcode recognises, so it is dropped without warning.
-	     "audio" is what keeps the app polling with the screen off. -->
+	     "location" keeps distance tracking with the screen locked; "audio"
+	     lets a cheer start playing from the background. -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
 		<string>location</string>
-		<string>fetch</string>
 	</array>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Tracks how far into the race you are, so each supporter's recording plays at the mile they claimed.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Tracks how far into the race you are, so each supporter's recording plays at the mile they claimed.</string>
-	<!-- Lets recordings be dropped in from Finder or the Files app, since they
-	     are gathered in the week before the race, long after this is installed. -->
+	<!-- Shows the app's Documents folder in the Files app, where the race
+	     logs are saved. -->
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
@@ -44,10 +33,5 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>gcm-ciq</string>
-		<string>gcm-ciq3</string>
-	</array>
 </dict>
 </plist>

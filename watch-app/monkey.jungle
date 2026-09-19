@@ -1,6 +1,0 @@
-project.manifest = manifest.xml
-
-# Default source/resource discovery is automatic in recent SDKs, but being
-# explicit here avoids surprises if you add per-device resource overrides later.
-base.sourcePath = source
-base.resourcePath = resources

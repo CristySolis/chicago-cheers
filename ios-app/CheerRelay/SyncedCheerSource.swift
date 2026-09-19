@@ -40,8 +40,7 @@ nonisolated struct SyncedCheerSource: CheerSource {
                     id: entry.id.uuidString,
                     mile: entry.mile,
                     sender: entry.sender,
-                    localURL: FileManager.default.fileExists(atPath: file.path) ? file : nil,
-                    remoteURL: nil)
+                    localURL: FileManager.default.fileExists(atPath: file.path) ? file : nil)
             }
             .sorted { ($0.mile, $0.id) < ($1.mile, $1.id) }
     }
