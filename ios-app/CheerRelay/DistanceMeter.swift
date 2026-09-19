@@ -8,8 +8,30 @@ import CoreLocation
 /// saving; this owns the maths.
 nonisolated struct DistanceMeter {
 
+    /// What happened to the most recent fix, for the race log.
+    enum Outcome: Equatable {
+        case counted(step: Double)
+        case firstFix
+        case imprecise
+        case stale
+        case tooFast(step: Double)
+        case notLater
+
+        var logName: String {
+            switch self {
+            case .counted: return "counted"
+            case .firstFix: return "first_fix"
+            case .imprecise: return "imprecise"
+            case .stale: return "stale"
+            case .tooFast: return "too_fast"
+            case .notLater: return "not_later"
+            }
+        }
+    }
+
     private(set) var metres: Double
     private(set) var reachedMiles: Set<Double>
+    private(set) var lastOutcome: Outcome = .firstFix
     private var lastFix: CLLocation?
 
     /// Fixes less precise than this are skipped entirely.
@@ -32,19 +54,35 @@ nonisolated struct DistanceMeter {
     /// course order — usually none.
     mutating func add(_ fix: CLLocation, now: Date) -> [Double]? {
         guard fix.horizontalAccuracy > 0,
-              fix.horizontalAccuracy < Self.worstAccuracy else { return nil }
-        guard fix.timestamp.timeIntervalSince(now) > -Self.oldestFix else { return nil }
+              fix.horizontalAccuracy < Self.worstAccuracy else {
+            lastOutcome = .imprecise
+            return nil
+        }
+        guard fix.timestamp.timeIntervalSince(now) > -Self.oldestFix else {
+            lastOutcome = .stale
+            return nil
+        }
 
         defer { lastFix = fix }
-        guard let previous = lastFix else { return [] }
+        guard let previous = lastFix else {
+            lastOutcome = .firstFix
+            return []
+        }
 
         let elapsed = fix.timestamp.timeIntervalSince(previous.timestamp)
-        guard elapsed > 0 else { return [] }
+        guard elapsed > 0 else {
+            lastOutcome = .notLater
+            return []
+        }
 
         let step = Self.distance(from: previous, to: fix, over: elapsed)
-        guard step / elapsed < Self.fastestPace else { return [] }
+        guard step / elapsed < Self.fastestPace else {
+            lastOutcome = .tooFast(step: step)
+            return []
+        }
 
         metres += step
+        lastOutcome = .counted(step: step)
         return passSlots()
     }
 

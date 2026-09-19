@@ -32,6 +32,13 @@ struct RaceView: View {
 
                 if !tracker.isRunning {
                     readiness
+
+                    if !tracker.log.files.isEmpty {
+                        ShareLink(items: tracker.log.files) {
+                            Label("Share race log", systemImage: "square.and.arrow.up")
+                                .font(.subheadline)
+                        }
+                    }
                 }
 
                 miles
@@ -69,8 +76,12 @@ struct RaceView: View {
                 await library.reload()
                 let cheers = library
                 let sound = player
+                let race = tracker
                 tracker.onMileReached = { mile in
                     sound.play(cheers.readyCheers(forMile: mile))
+                }
+                player.onCheerStarted = { sender, mile in
+                    race.cheerStarted(sender: sender, mile: mile)
                 }
             }
         }
@@ -96,7 +107,9 @@ struct RaceView: View {
         guard let mile = library.claimedMiles.first(where: { !tracker.hasReached(mile: $0) }) else {
             return "Every cheer has played"
         }
-        return "Next cheer: \(Course.label(mile))"
+        let togo = mile - tracker.milesCovered
+        guard tracker.startedAt != nil, togo > 0 else { return "Next cheer: \(Course.label(mile))" }
+        return "Next cheer: \(Course.label(mile)) · in \(String(format: "%.1f", togo)) mi"
     }
 
     private func runSync() async {
@@ -122,27 +135,56 @@ struct RaceView: View {
         }
     }
 
+    /// The race-day screen: made to be read in a glance while running.
     private var distance: some View {
-        VStack(spacing: 4) {
-            Text(String(format: "%.2f", tracker.milesCovered))
-                .font(.system(size: 64, weight: .bold, design: .rounded))
-                .monospacedDigit()
-            Text("miles")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            let clock = tracker.displayedClock(at: context.date)
+            VStack(spacing: 6) {
+                if let clock {
+                    Text(RaceClock.text(clock))
+                        .font(.system(size: 30, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .accessibilityLabel("Race time \(RaceClock.text(clock))")
+                }
 
-            if tracker.isRunning && !tracker.hasFix {
-                Label("Waiting for GPS…", systemImage: "location")
-                    .font(.footnote)
-                    .foregroundColor(.orange)
-            }
+                Text(String(format: "%.2f", tracker.milesCovered))
+                    .font(.system(size: tracker.isRunning ? 96 : 64, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
 
-            if let nextCheer {
-                Text(nextCheer)
-                    .font(.footnote)
+                Text(milesLine(clock: clock))
+                    .font(.subheadline)
                     .foregroundColor(.secondary)
+
+                if tracker.isRunning && !tracker.hasFix {
+                    Label("Waiting for GPS…", systemImage: "location")
+                        .font(.footnote)
+                        .foregroundColor(.orange)
+                }
+
+                if let nextCheer {
+                    Text(nextCheer)
+                        .font(tracker.isRunning ? .title3.weight(.semibold) : .footnote)
+                        .foregroundColor(tracker.isRunning ? .primary : .secondary)
+                }
+
+                if let last = tracker.lastCheer {
+                    Text("Last: \(last.sender) · \(Course.label(last.mile))"
+                         + (last.raceClock.map { " at \(RaceClock.text($0))" } ?? ""))
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
             }
         }
+    }
+
+    /// "miles", or "miles · 8:34 /mi average" once there's a pace to show.
+    private func milesLine(clock: TimeInterval?) -> String {
+        guard let clock, let pace = RaceClock.pace(seconds: clock, miles: tracker.milesCovered) else {
+            return "miles"
+        }
+        return "miles · \(pace) /mi average"
     }
 
     /// Stop and Reset each take a second, deliberate tap. One stray touch
