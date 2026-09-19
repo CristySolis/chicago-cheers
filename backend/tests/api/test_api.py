@@ -298,3 +298,45 @@ def test_the_share_link_opens_the_sender_page(api: TestClient) -> None:
     assert page.status_code == 200
     assert page.headers["content-type"].startswith("text/html")
     assert "/api/events/" in page.text
+
+
+def test_a_shared_link_previews_with_the_runners_name(
+    api: TestClient, make_event: MakeEvent
+) -> None:
+    event = make_event()
+    page = api.get(f"/cheer/{event['share_code']}").text
+    assert '<meta property="og:title" content="Record a cheer for Cristy">' in page
+    assert "Cristy hears it right there" in page
+
+
+def test_an_unknown_link_previews_without_naming_anyone(api: TestClient) -> None:
+    page = api.get("/cheer/no-such-race").text
+    assert '<meta property="og:title" content="Record a cheer">' in page
+    assert "the runner hears it" in page
+
+
+def test_the_preview_cant_be_used_to_inject_markup(
+    api: TestClient, make_event: MakeEvent
+) -> None:
+    event = make_event(runner_name='Ana"><script>alert(1)</script>')
+    page = api.get(f"/cheer/{event['share_code']}").text
+    assert "<script>alert(1)" not in page
+    assert "Ana&quot;&gt;&lt;script&gt;" in page
+
+
+def test_the_preview_image_is_linked_where_the_visitor_reached_the_site(
+    api: TestClient,
+) -> None:
+    page = api.get(
+        "/cheer/any-code",
+        headers={
+            "x-forwarded-proto": "https",
+            "x-forwarded-host": "cheers.example",
+        },
+    ).text
+    assert 'content="https://cheers.example/cheer-preview.png"' in page
+
+    image = api.get("/cheer-preview.png")
+    assert image.status_code == 200
+    assert image.headers["content-type"] == "image/png"
+    assert image.content.startswith(b"\x89PNG")
