@@ -140,6 +140,31 @@ struct DistanceMeterTests {
         #expect(abs(meter.metres - 6) < 0.05)
     }
 
+    @Test func eachFixRecordsWhatHappenedToIt() {
+        var meter = DistanceMeter()
+
+        _ = meter.add(fix(at: 0, north: 0), now: at(0))
+        #expect(meter.lastOutcome == .firstFix)
+
+        _ = meter.add(fix(at: 1, north: 0, accuracy: 40), now: at(1))
+        #expect(meter.lastOutcome == .imprecise)
+
+        _ = meter.add(fix(at: 2, north: 0), now: at(9))
+        #expect(meter.lastOutcome == .stale)
+
+        _ = meter.add(fix(at: 3, north: 30), now: at(3))
+        guard case .tooFast = meter.lastOutcome else {
+            Issue.record("expected too_fast, got \(meter.lastOutcome)")
+            return
+        }
+
+        _ = meter.add(fix(at: 3, north: 30), now: at(3))
+        #expect(meter.lastOutcome == .notLater)
+
+        _ = meter.add(fix(at: 4, speed: 3), now: at(4))
+        #expect(meter.lastOutcome == .counted(step: 3))
+    }
+
     // MARK: - Which slots are passed
 
     @Test func aSlotIsReportedOnceWhenItsDistanceIsReached() {
