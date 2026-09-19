@@ -57,11 +57,9 @@ final class RaceTracker: NSObject, ObservableObject {
         problem = nil
         manager.requestAlwaysAuthorization()
 
-        guard CLLocationManager.locationServicesEnabled() else {
-            problem = "Location Services are off — distance can't be tracked."
-            return
-        }
-
+        // No up-front "are Location Services on?" check: it blocks the main
+        // thread, and iOS already reports them being off as .denied, which
+        // locationManagerDidChangeAuthorization turns into a visible problem.
         manager.allowsBackgroundLocationUpdates = true
         manager.startUpdatingLocation()
         isRunning = true
@@ -159,7 +157,7 @@ extension RaceTracker: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
         case .denied, .restricted:
-            problem = "Location access denied — distance can't be tracked."
+            problem = "Location is off for this app, or Location Services are off in Settings — distance can't be tracked."
         default:
             // "While Using" is enough: allowsBackgroundLocationUpdates keeps
             // fixes coming with the screen locked, marked by the blue pill.
