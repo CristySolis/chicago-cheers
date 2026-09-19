@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Preview Card Source</title>
+<!--
+  Draws preview.png, the card chat apps show when the sender page's link is
+  shared. Not served: open it in a browser (it needs the Anton font from
+  Google Fonts), then save the canvas as backend/cheers/web/preview.png.
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap">
+<style>body { margin: 0; background: #ddd; } canvas { display: block; }</style>
+</head>
+<body>
+<canvas id="card" width="1200" height="630"></canvas>
+<script>
+"use strict";
+
+const PAGE = "#ece5d6", BIB = "#fffdf7", INK = "#15130f", RED = "#e4002b";
+
+async function draw() {
+  await document.fonts.load("100px Anton");
+  const c = document.getElementById("card").getContext("2d");
+
+  c.fillStyle = PAGE;
+  c.fillRect(0, 0, 1200, 630);
+
+  // The bib: hard red shadow, black outline, paper face.
+  const x = 150, y = 55, w = 900, h = 505, r = 22;
+  roundRect(c, x + 14, y + 14, w, h, r); c.fillStyle = RED; c.fill();
+  roundRect(c, x, y, w, h, r); c.fillStyle = BIB; c.fill();
+  c.lineWidth = 5; c.strokeStyle = INK; c.stroke();
+
+  // The event band across the top.
+  c.save(); roundRect(c, x, y, w, h, r); c.clip();
+  c.fillStyle = INK; c.fillRect(x, y, w, 92);
+  c.restore();
+  c.fillStyle = BIB; c.textAlign = "center"; c.textBaseline = "middle";
+  c.font = "40px Anton";
+  spaced(c, "CHICAGO MARATHON 2026", 600, y + 48, 6);
+  c.fillStyle = RED; c.font = "44px sans-serif";
+  c.fillText("✶", x + 150, y + 48); c.fillText("✶", x + w - 150, y + 48);
+
+  // Safety-pin holes in the four corners.
+  for (const [hx, hy] of [[x + 28, y + 28], [x + w - 28, y + 28], [x + 28, y + h - 28], [x + w - 28, y + h - 28]]) {
+    c.beginPath(); c.arc(hx, hy, 12, 0, Math.PI * 2);
+    c.fillStyle = PAGE; c.fill(); c.lineWidth = 3;
+    c.strokeStyle = hy < y + 92 ? BIB : INK; c.stroke();
+  }
+
+  c.fillStyle = INK; c.font = "124px Anton";
+  c.fillText("RECORD A CHEER", 600, y + 215);
+  c.fillStyle = "#5f5a50"; c.font = "46px Anton";
+  spaced(c, "GRABA UN MENSAJE DE ÁNIMO", 600, y + 335, 4);
+
+  // The timing-chip strip along the bottom.
+  c.fillStyle = INK;
+  for (let bx = x + 120, i = 0; bx < x + w - 120; i++) {
+    const bw = [4, 2, 6, 2, 3][i % 5];
+    c.fillRect(bx, y + 400, bw, 50);
+    bx += bw + [5, 7, 4, 8, 6][i % 5];
+  }
+}
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath(); c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+
+// Canvas has no letter-spacing everywhere yet, so place letters one by one.
+function spaced(c, text, cx, cy, gap) {
+  const widths = [...text].map((ch) => c.measureText(ch).width);
+  let left = cx - (widths.reduce((a, b) => a + b, 0) + gap * (text.length - 1)) / 2;
+  c.textAlign = "left";
+  [...text].forEach((ch, i) => { c.fillText(ch, left, cy); left += widths[i] + gap; });
+  c.textAlign = "center";
+}
+
+draw();
+</script>
+</body>
+</html>

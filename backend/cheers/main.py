@@ -119,7 +119,7 @@ def _link_preview(runner: str | None, origin: str) -> str:
         "og:image": f"{origin}/cheer-preview.png",
         "og:image:width": "1200",
         "og:image:height": "630",
-        "og:image:alt": "Chicago flag stripes and stars: Record a cheer",
+        "og:image:alt": "A Chicago Marathon race bib reading Record a cheer",
         "twitter:card": "summary_large_image",
     }
     lines = [f'<meta name="description" content="{html.escape(description)}">']
