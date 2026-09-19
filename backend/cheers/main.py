@@ -1,6 +1,7 @@
 """The HTTP API. A standard ASGI app, so it runs as a Vercel function today and
 in a Cloud Run container tomorrow without changes."""
 
+import html
 import os
 from decimal import Decimal
 from functools import lru_cache
@@ -10,7 +11,7 @@ from uuid import UUID
 
 from fastapi import Depends, FastAPI, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
 from cheers import service as svc
@@ -74,14 +75,67 @@ def _refused(_: Request, error: svc.CheerError) -> JSONResponse:
 # The sender page is one static file. Served by the API rather than by the
 # host's static hosting, so the page and the API it calls always share an
 # origin, and moving hosts moves both together.
-_SENDER_PAGE = (Path(__file__).parent / "web" / "sender.html").read_text()
+_WEB = Path(__file__).parent / "web"
+_SENDER_PAGE = (_WEB / "sender.html").read_text()
 
 
 @app.get("/cheer/{share_code}", include_in_schema=False)
-def sender_page(share_code: str) -> HTMLResponse:
+def sender_page(share_code: str, request: Request, service: Service) -> HTMLResponse:
     # Whether the code is real is for the page to find out through the API,
-    # so an unknown one gets the page's own friendly message.
-    return HTMLResponse(_SENDER_PAGE, headers={"Cache-Control": "no-cache"})
+    # so an unknown one gets the page's own friendly message — and a preview
+    # that doesn't name anyone.
+    try:
+        runner = service.public_event(share_code).runner_name
+    except svc.EventNotFound:
+        runner = None
+    page = _SENDER_PAGE.replace(
+        "<!--link-preview-->", _link_preview(runner, _public_origin(request))
+    )
+    return HTMLResponse(page, headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/cheer-preview.png", include_in_schema=False)
+def preview_image() -> FileResponse:
+    return FileResponse(
+        _WEB / "preview.png",
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
+def _link_preview(runner: str | None, origin: str) -> str:
+    """The tags chat apps read to show a card when the link is pasted. They
+    don't run the page's script, so these have to arrive already filled in."""
+    title = f"Record a cheer for {runner}" if runner else "Record a cheer"
+    who = runner or "the runner"
+    description = (
+        f"Pick a mile of the Chicago Marathon and record up to 25 seconds: "
+        f"{who} hears it right there. · Elige una milla y graba hasta 25 segundos."
+    )
+    tags = {
+        "og:title": title,
+        "og:description": description,
+        "og:type": "website",
+        "og:image": f"{origin}/cheer-preview.png",
+        "og:image:width": "1200",
+        "og:image:height": "630",
+        "og:image:alt": "Chicago flag stripes and stars: Record a cheer",
+        "twitter:card": "summary_large_image",
+    }
+    lines = [f'<meta name="description" content="{html.escape(description)}">']
+    lines += [
+        f'<meta property="{key}" content="{html.escape(value)}">'
+        for key, value in tags.items()
+    ]
+    return "\n".join(lines)
+
+
+def _public_origin(request: Request) -> str:
+    # Behind Vercel's proxy the app sees plain http; the forwarded headers say
+    # what the visitor actually used, and chat apps want an https image link.
+    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    host = request.headers.get("x-forwarded-host", request.url.netloc)
+    return f"{scheme}://{host}"
 
 
 class SpotCount(BaseModel):
