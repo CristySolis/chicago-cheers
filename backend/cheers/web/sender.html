@@ -16,68 +16,58 @@
   browser can make and the phone can always play, whatever the browser
   recorded in (Safari: mp4, Chrome/Firefox: webm/ogg).
 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap">
 <style>
+  /* Styled like a marathon bib: black on warm paper, one red accent, bold
+     condensed numbers. The bibs and cards stay paper-coloured in dark mode,
+     as a real bib would; only the page around them goes dark. */
   :root {
-    --bg: #f4f7f9;
-    --card: #ffffff;
-    --ink: #14212b;
-    --muted: #5b6b77;
-    --line: #dbe3e8;
-    --sky: #41b6e6;        /* the Chicago flag's blue stripes */
-    --sky-ink: #0b5d80;
-    --star: #e4002b;       /* and its red stars */
-    --star-ink: #ffffff;
-    --chip: #eef3f6;
-    --chip-taken: #e3e8eb;
-    --chip-taken-ink: #9aa7b0;
-    --ok: #1d7a46;
-    --warn-bg: #fff4e5;
-    --warn-ink: #7a4b00;
-    --shadow: 0 1px 2px rgba(20, 33, 43, .06), 0 4px 16px rgba(20, 33, 43, .06);
+    --page: #ece5d6;
+    --page-ink: #15130f;
+    --page-muted: #5f5a50;
+    --bib: #fffdf7;
+    --ink: #15130f;
+    --muted: #5f5a50;
+    --accent: #e4002b;         /* the Chicago flag's red */
+    --accent-ink: #ffffff;
+    --band: #15130f;
+    --band-ink: #fffdf7;
+    --taken: #e4ddcd;
+    --taken-ink: #a19a89;
+    --cta: #15130f;
+    --cta-ink: #fffdf7;
+    --warn-bg: #fff0bf;
+    --warn-ink: #5c4200;
+    --card-shadow: #15130f;
+    --display: "Anton", "Arial Narrow", Impact, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0e1418;
-      --card: #172026;
-      --ink: #e8eef2;
-      --muted: #97a6b1;
-      --line: #2a363e;
-      --sky: #41b6e6;
-      --sky-ink: #8fd6f5;
-      --star: #ff3355;
-      --chip: #202c33;
-      --chip-taken: #1a2329;
-      --chip-taken-ink: #56646e;
-      --ok: #5fd08e;
-      --warn-bg: #3a2a10;
-      --warn-ink: #f5c77a;
-      --shadow: none;
+      --page: #141310;
+      --page-ink: #f3eee3;
+      --page-muted: #a59f92;
+      --cta: #fffdf7;
+      --cta-ink: #15130f;
+      --card-shadow: #e4002b;   /* black would vanish on the dark page */
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0e1418;
-    --card: #172026;
-    --ink: #e8eef2;
-    --muted: #97a6b1;
-    --line: #2a363e;
-    --sky: #41b6e6;
-    --sky-ink: #8fd6f5;
-    --star: #ff3355;
-    --chip: #202c33;
-    --chip-taken: #1a2329;
-    --chip-taken-ink: #56646e;
-    --ok: #5fd08e;
-    --warn-bg: #3a2a10;
-    --warn-ink: #f5c77a;
-    --shadow: none;
+    --page: #141310;
+    --page-ink: #f3eee3;
+    --page-muted: #a59f92;
+    --cta: #fffdf7;
+    --cta-ink: #15130f;
+    --card-shadow: #e4002b;
   }
 
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
-    background: var(--bg);
-    color: var(--ink);
+    background: var(--page);
+    color: var(--page-ink);
     font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   main {
@@ -87,102 +77,159 @@
   }
   [hidden] { display: none !important; }
 
-  .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .flag { display: flex; gap: 5px; align-items: center; }
-  .flag span { width: 22px; height: 5px; border-radius: 3px; background: var(--sky); }
-  .lang { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .top { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+  .lang { display: flex; border: 2px solid var(--page-ink); border-radius: 999px; overflow: hidden; }
   .lang button {
-    border: 0; background: transparent; color: var(--muted);
-    font: inherit; font-size: 13px; font-weight: 600; padding: 5px 12px; cursor: pointer;
+    border: 0; background: transparent; color: var(--page-ink);
+    font: 13px/1 var(--display); letter-spacing: .08em; padding: 7px 13px; cursor: pointer;
   }
-  .lang button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .lang button[aria-pressed="true"] { background: var(--page-ink); color: var(--page); }
 
-  h1 { font-size: 30px; line-height: 1.15; margin: 0 0 6px; letter-spacing: -.01em; }
-  h1 .star { color: var(--star); }
-  .event { color: var(--muted); font-weight: 600; margin: 0 0 12px; }
-  .intro { margin: 0 0 20px; }
-
-  .card {
-    background: var(--card); border-radius: 16px; box-shadow: var(--shadow);
-    border: 1px solid var(--line);
-    padding: 18px 16px; margin-bottom: 14px;
+  /* A bib: paper card, hard shadow, and a safety-pin hole in each corner. */
+  .bib, .card {
+    position: relative;
+    background:
+      radial-gradient(circle at 13px 13px, var(--page) 5px, var(--ink) 5.5px, var(--ink) 6.5px, transparent 7px),
+      radial-gradient(circle at calc(100% - 13px) 13px, var(--page) 5px, var(--ink) 5.5px, var(--ink) 6.5px, transparent 7px),
+      radial-gradient(circle at 13px calc(100% - 13px), var(--page) 5px, var(--ink) 5.5px, var(--ink) 6.5px, transparent 7px),
+      radial-gradient(circle at calc(100% - 13px) calc(100% - 13px), var(--page) 5px, var(--ink) 5.5px, var(--ink) 6.5px, transparent 7px),
+      var(--bib);
+    color: var(--ink);
+    color-scheme: light;  /* the audio player and inputs match the paper, not the page */
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    box-shadow: 5px 5px 0 var(--card-shadow);
   }
-  .card h2 { font-size: 18px; margin: 0 0 4px; }
-  .hint { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
 
-  .group-label { font-size: 13px; font-weight: 600; color: var(--muted); margin: 12px 0 6px; }
-  .spots { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 6px; }
+  .bib { overflow: hidden; margin-bottom: 22px; padding: 0 0 18px; text-align: center; }
+  /* The top pair of pin holes sits on the black band, so draw it over it. */
+  .bib::before, .bib::after {
+    content: ""; position: absolute; top: 10px; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--page); border: 1.5px solid var(--bib);
+  }
+  .bib::before { left: 10px; }
+  .bib::after { right: 10px; }
+  .bib-band {
+    background: var(--band); color: var(--band-ink);
+    font: 15px/1 var(--display); letter-spacing: .14em; text-transform: uppercase;
+    padding: 12px 44px 11px;
+  }
+  .bib-band::before, .bib-band::after { content: "✶"; color: var(--accent); margin: 0 .6em; }
+  h1 {
+    font: 44px/1.02 var(--display); text-transform: uppercase; letter-spacing: .01em;
+    margin: 20px 34px 12px; overflow-wrap: anywhere;
+  }
+  h1 .star { display: none; }
+  .intro { margin: 0 34px 16px; color: var(--muted); font-size: 15px; }
+  /* The tear-off timing strip along the bottom of a real bib. */
+  .bib-chip {
+    height: 22px; margin: 0 34px;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 5px, var(--ink) 5px 6px, transparent 6px 10px);
+    opacity: .85;
+  }
+
+  .card { padding: 22px 22px 24px; margin-bottom: 20px; }
+  .card h2 {
+    font: 26px/1.05 var(--display); text-transform: uppercase; letter-spacing: .02em;
+    margin: 0 0 6px;
+  }
+  .hint { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+
+  .group-label {
+    font: 13px/1 var(--display); letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); margin: 16px 0 8px;
+  }
+  .spots { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; }
   .spot {
     position: relative;
-    font: inherit; font-weight: 600; font-variant-numeric: tabular-nums;
-    height: 44px; border-radius: 10px; border: 2px solid transparent;
-    background: var(--chip); color: var(--ink); cursor: pointer;
+    font: 21px/1 var(--display); font-variant-numeric: tabular-nums;
+    height: 52px; border-radius: 6px;
+    background: var(--bib); color: var(--ink);
+    border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink);
+    cursor: pointer; transition: transform .08s, box-shadow .08s;
   }
-  .spot .dots { position: absolute; left: 0; right: 0; bottom: 3px; font-size: 7px; letter-spacing: 2px; line-height: 1; color: var(--muted); }
-  .spot:disabled { background: var(--chip-taken); color: var(--chip-taken-ink); cursor: not-allowed; }
-  .spot[aria-pressed="true"] { background: var(--sky); color: #06202c; border-color: var(--sky-ink); }
-  .spot[aria-pressed="true"] .dots { color: #06202c; }
+  .spot:active { transform: translate(2px, 2px); box-shadow: none; }
+  .spot .dots { position: absolute; left: 0; right: 0; bottom: 4px; font-size: 7px; letter-spacing: 2px; line-height: 1; color: var(--muted); font-family: sans-serif; }
+  .spot:disabled {
+    background: repeating-linear-gradient(-45deg, var(--taken) 0 5px, transparent 5px 10px), var(--bib);
+    color: var(--taken-ink); border-color: var(--taken-ink); box-shadow: none; cursor: not-allowed;
+  }
+  .spot[aria-pressed="true"] {
+    background: var(--accent); color: var(--accent-ink);
+    transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink);
+  }
+  .spot[aria-pressed="true"] .dots { color: var(--accent-ink); }
 
   input[type="text"] {
-    width: 100%; font: inherit; font-size: 17px; color: var(--ink);
-    background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+    width: 100%; font: inherit; font-size: 18px; color: var(--ink);
+    background: var(--bib); border: 2px solid var(--ink); border-radius: 6px; padding: 12px 14px;
   }
-  input[type="text"]:focus { outline: 2px solid var(--sky); outline-offset: 1px; }
+  input[type="text"]:focus { outline: 3px solid var(--accent); outline-offset: 1px; }
 
-  .recorder { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 4px; }
+  .recorder { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 6px; }
   .rec {
-    width: 88px; height: 88px; border-radius: 50%; border: 0; cursor: pointer;
-    background: var(--star); color: var(--star-ink);
-    display: grid; place-items: center; box-shadow: 0 4px 14px rgba(228, 0, 43, .3);
+    width: 96px; height: 96px; border-radius: 50%; cursor: pointer;
+    background: var(--accent); color: var(--accent-ink);
+    border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+    display: grid; place-items: center; transition: transform .08s, box-shadow .08s;
   }
-  .rec svg { width: 34px; height: 34px; }
+  .rec:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+  .rec svg { width: 38px; height: 38px; }
   .rec.recording { animation: pulse 1.2s ease-in-out infinite; }
-  @keyframes pulse { 50% { box-shadow: 0 0 0 12px rgba(228, 0, 43, .12); } }
+  @keyframes pulse { 50% { box-shadow: 4px 4px 0 var(--ink), 0 0 0 12px rgba(228, 0, 43, .15); } }
   @media (prefers-reduced-motion: reduce) { .rec.recording { animation: none; } }
-  .rec-label { font-weight: 600; }
-  .meter { width: 100%; height: 6px; background: var(--chip); border-radius: 3px; overflow: hidden; }
-  .meter div { height: 100%; width: 0; background: var(--star); transition: width .1s linear; }
+  .rec-label { font: 17px/1.2 var(--display); letter-spacing: .04em; text-transform: uppercase; text-align: center; }
+  .meter { width: 100%; height: 12px; border: 2px solid var(--ink); border-radius: 6px; overflow: hidden; background: var(--bib); }
+  .meter div { height: 100%; width: 0; background: var(--accent); transition: width .1s linear; }
   audio { width: 100%; }
 
   .link {
-    font: inherit; font-size: 15px; font-weight: 600; color: var(--sky-ink);
-    background: none; border: 0; padding: 6px; cursor: pointer; text-decoration: underline;
+    font: 15px/1 var(--display); letter-spacing: .06em; text-transform: uppercase;
+    color: inherit; background: none; border: 0; padding: 8px; cursor: pointer;
+    text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 4px;
   }
   .send {
-    width: 100%; font: inherit; font-size: 18px; font-weight: 700;
-    padding: 16px; border: 0; border-radius: 14px; cursor: pointer;
-    background: var(--ink); color: var(--bg);
+    width: 100%; font: 24px/1 var(--display); letter-spacing: .06em; text-transform: uppercase;
+    padding: 20px 16px 18px; border: 2px solid var(--cta); border-radius: 10px; cursor: pointer;
+    background: var(--cta); color: var(--cta-ink); box-shadow: 5px 5px 0 var(--accent);
+    transition: transform .08s, box-shadow .08s;
   }
-  .send:disabled { opacity: .35; cursor: not-allowed; }
-  .missing { color: var(--muted); font-size: 14px; text-align: center; margin: 8px 0 0; }
+  .send:active:not(:disabled) { transform: translate(4px, 4px); box-shadow: 1px 1px 0 var(--accent); }
+  .send:disabled { opacity: .3; cursor: not-allowed; box-shadow: none; }
+  .missing { color: var(--page-muted); font-size: 14px; text-align: center; margin: 12px 0 0; }
 
-  .notice { border-radius: 12px; padding: 12px 14px; margin: 0 0 14px; background: var(--warn-bg); color: var(--warn-ink); }
-  .privacy { color: var(--muted); font-size: 13px; text-align: center; margin-top: 18px; }
+  .notice {
+    border: 2px solid var(--ink); border-radius: 8px; padding: 12px 14px; margin: 0 0 20px;
+    background: var(--warn-bg); color: var(--warn-ink);
+  }
+  .privacy { color: var(--page-muted); font-size: 13px; text-align: center; margin-top: 22px; }
 
-  .done { text-align: center; padding: 28px 16px; }
-  .done .big { font-size: 56px; line-height: 1; margin-bottom: 8px; }
-  .done h2 { font-size: 24px; margin: 0 0 8px; }
+  .done { text-align: center; padding: 34px 26px 30px; }
+  .done .big { font-size: 60px; line-height: 1; margin-bottom: 10px; }
+  .done h2 { font-size: 34px; margin: 0 0 10px; }
   .done p { margin: 0 0 10px; }
-  .status { text-align: center; color: var(--muted); padding: 40px 0; }
+  .status { text-align: center; color: var(--page-muted); padding: 40px 0; font: 18px/1 var(--display); letter-spacing: .08em; text-transform: uppercase; }
 </style>
 </head>
 <body>
 <main>
   <div class="top">
-    <div class="flag" aria-hidden="true"><span></span><span></span></div>
     <div class="lang" role="group" aria-label="Language">
       <button type="button" data-lang="en" lang="en">EN</button>
       <button type="button" data-lang="es" lang="es">ES</button>
     </div>
   </div>
 
-  <h1 id="title"></h1>
-  <p class="event" id="event-name"></p>
+  <header class="bib">
+    <div class="bib-band" id="event-name"></div>
+    <h1 id="title"></h1>
+    <p class="intro" id="intro"></p>
+    <div class="bib-chip" aria-hidden="true"></div>
+  </header>
 
   <p class="status" id="status"></p>
 
   <section id="form" hidden>
-    <p class="intro" id="intro"></p>
     <p class="notice" id="notice" hidden></p>
 
     <div class="card">
@@ -217,7 +264,7 @@
   </section>
 
   <section class="card done" id="done" hidden>
-    <div class="big" aria-hidden="true">🎉</div>
+    <div class="big" aria-hidden="true">🏅</div>
     <h2 id="done-heading"></h2>
     <p id="done-where"></p>
     <p class="hint" id="done-moved" hidden></p>
