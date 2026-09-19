@@ -7,14 +7,14 @@ plays. Everything is downloaded to the phone beforehand, so the race itself
 needs no signal.
 
 ```
- supporter's phone              the internet                 Cristy's iPhone
-┌──────────────────┐   ┌─────────────────────────────┐   ┌──────────────────────┐
-│ sender page       │──▶│ API (Python, on Vercel)      │◀──│ race app: Sync       │
-│ pick mile, name,  │   │   │                          │   │ (before the race)    │
-│ record, send      │   │   ├─ database: who, which mile│   │                      │
-└────────┬─────────┘   │   └─ storage: the recordings  │──▶│ race day: GPS → mile │
-         └────────────▶│      (uploaded straight here) │   │ → play the cheer     │
-                        └─────────────────────────────┘   └──────────────────────┘
+Supporter's phone            The internet                    Cristy's iPhone
+
+ sender page ────────────▶  API (Python, on Vercel)  ◀────────  race app: Sync
+ (pick mile, name,           ├─ database: who, which mile       (before the race)
+  record, send)              └─ storage: the recordings ──────▶
+      │                              ▲                          race day: GPS → mile
+      └── recording uploads ─────────┘                          → play the cheer
+          straight to storage
 ```
 
 The database and storage are [Supabase](https://supabase.com); the API and the
