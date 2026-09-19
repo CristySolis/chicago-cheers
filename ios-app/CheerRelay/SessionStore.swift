@@ -1,7 +1,7 @@
 import Foundation
 import Security
 
-/// Keeps the runner's refresh token in the Keychain — never her password, and
+/// Keeps the runner's refresh token in the Keychain — never the password, and
 /// never UserDefaults, which isn't encrypted.
 ///
 /// The token is replaced on every refresh, and the login provider may revoke

@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 
-/// Signs the runner in, and brings her recordings down from the server.
+/// Signs the runner in, and brings the runner's recordings down from the server.
 ///
 /// Sync is a deliberate step taken before the race, never during it: once it
 /// has run, the race reads only what it saved to disk.
