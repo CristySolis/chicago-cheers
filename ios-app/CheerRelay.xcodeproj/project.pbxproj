@@ -8,11 +8,26 @@
 
 /* Begin PBXBuildFile section */
 		34786E7F0B16E3941211F882 /* Pods_CheerRelay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B31D715FC96EAD6D7E2FCAB9 /* Pods_CheerRelay.framework */; };
+		BBA1643B69238A2469AFF65D /* Pods_CheerRelayTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C89D7C5B204B89D3AAFA097 /* Pods_CheerRelayTests.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		000000000000000260000000 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000100000000;
+			remoteInfo = CheerRelay;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* CheerRelay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CheerRelay.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000220 /* CheerRelayTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CheerRelayTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2501EB14FD8BE0B508DF0E90 /* Pods-CheerRelayTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CheerRelayTests.release.xcconfig"; path = "Target Support Files/Pods-CheerRelayTests/Pods-CheerRelayTests.release.xcconfig"; sourceTree = "<group>"; };
 		264901A5F64108CBE7349470 /* Pods-CheerRelay.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CheerRelay.release.xcconfig"; path = "Target Support Files/Pods-CheerRelay/Pods-CheerRelay.release.xcconfig"; sourceTree = "<group>"; };
+		3C89D7C5B204B89D3AAFA097 /* Pods_CheerRelayTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CheerRelayTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		871CD25A46F171583506955B /* Pods-CheerRelayTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CheerRelayTests.debug.xcconfig"; path = "Target Support Files/Pods-CheerRelayTests/Pods-CheerRelayTests.debug.xcconfig"; sourceTree = "<group>"; };
 		B31D715FC96EAD6D7E2FCAB9 /* Pods_CheerRelay.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CheerRelay.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CF33A3B6881B4BB8CA1C6059 /* Pods-CheerRelay.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CheerRelay.debug.xcconfig"; path = "Target Support Files/Pods-CheerRelay/Pods-CheerRelay.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -25,6 +40,13 @@
 			path = CheerRelay;
 			sourceTree = "<group>";
 		};
+		000000000000000000000210 /* CheerRelayTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			path = CheerRelayTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,6 +56,12 @@
 				34786E7F0B16E3941211F882 /* Pods_CheerRelay.framework in Frameworks */,
 			);
 		};
+		000000000000000230000000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				BBA1643B69238A2469AFF65D /* Pods_CheerRelayTests.framework in Frameworks */,
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -41,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000010 /* CheerRelay */,
+				000000000000000000000210 /* CheerRelayTests */,
 				000000000000000000000020 /* Products */,
 				27EE94F309349A0251069596 /* Pods */,
 				E7A85BB830BAAB4A62FEC880 /* Frameworks */,
@@ -51,6 +80,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* CheerRelay.app */,
+				000000000000000000000220 /* CheerRelayTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -60,6 +90,8 @@
 			children = (
 				CF33A3B6881B4BB8CA1C6059 /* Pods-CheerRelay.debug.xcconfig */,
 				264901A5F64108CBE7349470 /* Pods-CheerRelay.release.xcconfig */,
+				871CD25A46F171583506955B /* Pods-CheerRelayTests.debug.xcconfig */,
+				2501EB14FD8BE0B508DF0E90 /* Pods-CheerRelayTests.release.xcconfig */,
 			);
 			name = Pods;
 			path = Pods;
@@ -69,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				B31D715FC96EAD6D7E2FCAB9 /* Pods_CheerRelay.framework */,
+				3C89D7C5B204B89D3AAFA097 /* Pods_CheerRelayTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -98,6 +131,28 @@
 			productReference = 000000000000000000000120 /* CheerRelay.app */;
 			productType = "com.apple.product-type.application";
 		};
+		000000000000000200000000 /* CheerRelayTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 000000000000000210000000 /* Build configuration list for PBXNativeTarget "CheerRelayTests" */;
+			buildPhases = (
+				33338B0D65BA1BD20EF91D6F /* [CP] Check Pods Manifest.lock */,
+				000000000000000220000000 /* Sources */,
+				000000000000000230000000 /* Frameworks */,
+				000000000000000240000000 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				000000000000000250000000 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				000000000000000000000210 /* CheerRelayTests */,
+			);
+			name = CheerRelayTests;
+			productName = CheerRelayTests;
+			productReference = 000000000000000000000220 /* CheerRelayTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -110,6 +165,10 @@
 				TargetAttributes = {
 					000000000000000100000000 = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					000000000000000200000000 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = 000000000000000100000000;
 					};
 				};
 			};
@@ -128,6 +187,7 @@
 			projectRoot = "";
 			targets = (
 				000000000000000100000000 /* CheerRelay */,
+				000000000000000200000000 /* CheerRelayTests */,
 			);
 		};
 /* End PBXProject section */
@@ -138,9 +198,36 @@
 			files = (
 			);
 		};
+		000000000000000240000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		33338B0D65BA1BD20EF91D6F /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-CheerRelayTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		3C2FCE9A73585F3468183804 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -188,7 +275,20 @@
 			files = (
 			);
 		};
+		000000000000000220000000 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		000000000000000250000000 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000100000000 /* CheerRelay */;
+			targetProxy = 000000000000000260000000 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		000000000000000011000000 /* Debug */ = {
@@ -329,8 +429,8 @@
 			buildSettings = {
 				CHEERS_API_URL = "http://127.0.0.1:8000";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -376,8 +476,8 @@
 			buildSettings = {
 				CHEERS_API_URL = "https://chicago-cheers.vercel.app";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -417,6 +517,54 @@
 			};
 			name = Release;
 		};
+		000000000000000211000000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 871CD25A46F171583506955B /* Pods-CheerRelayTests.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cristysolis.CheerRelayTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CheerRelay.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CheerRelay";
+			};
+			name = Debug;
+		};
+		000000000000000212000000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2501EB14FD8BE0B508DF0E90 /* Pods-CheerRelayTests.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZJ6WD8LCMY;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cristysolis.CheerRelayTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CheerRelay.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CheerRelay";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -433,6 +581,14 @@
 			buildConfigurations = (
 				000000000000000111000000 /* Debug */,
 				000000000000000112000000 /* Release */,
+			);
+			defaultConfigurationName = Release;
+		};
+		000000000000000210000000 /* Build configuration list for PBXNativeTarget "CheerRelayTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000211000000 /* Debug */,
+				000000000000000212000000 /* Release */,
 			);
 			defaultConfigurationName = Release;
 		};

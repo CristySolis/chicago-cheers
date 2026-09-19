@@ -26,8 +26,7 @@ final class RaceTracker: NSObject, ObservableObject {
     var onMileReached: ((Double) -> Void)?
 
     private let manager = CLLocationManager()
-    private var lastFix: CLLocation?
-    private var reachedMiles: Set<Double> = []
+    private var meter = DistanceMeter()
 
     private enum Key {
         static let metres = "race.metres"
@@ -35,7 +34,7 @@ final class RaceTracker: NSObject, ObservableObject {
         static let running = "race.isRunning"
     }
 
-    var milesCovered: Double { metres / Course.metresPerMile }
+    var milesCovered: Double { meter.milesCovered }
 
     override init() {
         super.init()
@@ -73,7 +72,7 @@ final class RaceTracker: NSObject, ObservableObject {
         manager.stopUpdatingLocation()
         manager.allowsBackgroundLocationUpdates = false
         isRunning = false
-        lastFix = nil
+        meter.breakTrail()
         persist()
     }
 
@@ -81,16 +80,16 @@ final class RaceTracker: NSObject, ObservableObject {
     /// mid-race, which is exactly why it isn't wired to anything automatic.
     func reset() {
         stop()
+        meter = DistanceMeter()
         metres = 0
-        reachedMiles = []
         hasFix = false
         persist()
     }
 
-    func hasReached(mile: Double) -> Bool { reachedMiles.contains(mile) }
+    func hasReached(mile: Double) -> Bool { meter.reachedMiles.contains(mile) }
 
     var nextMile: Double? {
-        Course.slots.first { !reachedMiles.contains($0) }
+        Course.slots.first { !meter.reachedMiles.contains($0) }
     }
 
     // MARK: - Persistence
@@ -98,14 +97,17 @@ final class RaceTracker: NSObject, ObservableObject {
     private func persist() {
         let defaults = UserDefaults.standard
         defaults.set(metres, forKey: Key.metres)
-        defaults.set(Array(reachedMiles), forKey: Key.reached)
+        defaults.set(Array(meter.reachedMiles), forKey: Key.reached)
         defaults.set(isRunning, forKey: Key.running)
     }
 
     private func restore() {
         let defaults = UserDefaults.standard
-        metres = defaults.double(forKey: Key.metres)
-        reachedMiles = Set(defaults.array(forKey: Key.reached) as? [Double] ?? [])
+        meter = DistanceMeter(
+            metres: defaults.double(forKey: Key.metres),
+            reachedMiles: Set(defaults.array(forKey: Key.reached) as? [Double] ?? [])
+        )
+        metres = meter.metres
 
         // Resume automatically after a crash rather than waiting to be noticed.
         if defaults.bool(forKey: Key.running) {
@@ -116,62 +118,14 @@ final class RaceTracker: NSObject, ObservableObject {
     // MARK: - Distance
 
     private func consume(_ fix: CLLocation) {
-        guard fix.horizontalAccuracy > 0, fix.horizontalAccuracy < 25 else { return }
-        guard fix.timestamp.timeIntervalSinceNow > -5 else { return }
+        guard let passed = meter.add(fix, now: Date()) else { return }
 
         problem = nil // fixes are flowing again
         hasFix = true
 
-        defer { lastFix = fix }
-        guard let previous = lastFix else { return }
-
-        let elapsed = fix.timestamp.timeIntervalSince(previous.timestamp)
-        guard elapsed > 0 else { return }
-
-        let step = Self.distance(from: previous, to: fix, over: elapsed)
-
-        // Over 8 m/s is a bad fix, faster than any marathon pace by a wide margin.
-        guard step / elapsed < 8 else { return }
-
-        metres += step
-        announceMilesPassed()
+        metres = meter.metres
+        passed.forEach { onMileReached?($0) }
         persist()
-    }
-
-    /// Joining the dots between positions overcounts. Every fix is a few metres
-    /// off in a direction that wanders, so the traced path zigzags, and a
-    /// zigzag is longer than the line actually run. The first field test read
-    /// about 6% long — 200 m by mile 2, which would be 1.6 miles by the finish
-    /// — and simulating noisier GPS, like the Loop's towers, pushes that past
-    /// 20%.
-    ///
-    /// The receiver's Doppler speed doesn't wobble that way (within 0.2% in the
-    /// same simulation), so distance is speed integrated over time, falling
-    /// back to position only when speed isn't reported.
-    private static func distance(from previous: CLLocation,
-                                 to fix: CLLocation,
-                                 over elapsed: TimeInterval) -> Double {
-        switch (hasUsableSpeed(previous), hasUsableSpeed(fix)) {
-        case (true, true):
-            return (previous.speed + fix.speed) / 2 * elapsed
-        case (_, true):
-            return fix.speed * elapsed
-        default:
-            let step = fix.distance(from: previous)
-            return step > 1 ? step : 0 // under a metre is jitter while standing
-        }
-    }
-
-    private static func hasUsableSpeed(_ fix: CLLocation) -> Bool {
-        fix.speed >= 0 && fix.speedAccuracy >= 0
-    }
-
-    private func announceMilesPassed() {
-        let covered = milesCovered
-        for slot in Course.slots where slot <= covered && !reachedMiles.contains(slot) {
-            reachedMiles.insert(slot)
-            onMileReached?(slot)
-        }
     }
 }
 

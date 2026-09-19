@@ -92,6 +92,13 @@ With a free Apple account the installed app **stops opening after 7 days**.
 Rebuild it on **9 or 10 October** so it's valid through race day. Synced
 cheers survive a rebuild.
 
+The tests cover the course's cheer spots and the distance maths that decides
+when each cheer plays. Run them in Xcode with **Product → Test** (⌘U), or:
+
+```bash
+cd ios-app && xcodebuild test -workspace CheerRelay.xcworkspace -scheme CheerRelay -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
+```
+
 ## Developing the backend
 
 Needs Python 3.12, Poetry 1.8, Node (for `npx supabase`) and Docker Desktop.
