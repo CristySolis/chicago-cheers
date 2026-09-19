@@ -6,11 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		34786E7F0B16E3941211F882 /* Pods_CheerRelay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B31D715FC96EAD6D7E2FCAB9 /* Pods_CheerRelay.framework */; };
-		BBA1643B69238A2469AFF65D /* Pods_CheerRelayTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C89D7C5B204B89D3AAFA097 /* Pods_CheerRelayTests.framework */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		000000000000000260000000 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,22 +19,20 @@
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* CheerRelay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CheerRelay.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000000220 /* CheerRelayTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CheerRelayTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		2501EB14FD8BE0B508DF0E90 /* Pods-CheerRelayTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CheerRelayTests.release.xcconfig"; path = "Target Support Files/Pods-CheerRelayTests/Pods-CheerRelayTests.release.xcconfig"; sourceTree = "<group>"; };
-		264901A5F64108CBE7349470 /* Pods-CheerRelay.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CheerRelay.release.xcconfig"; path = "Target Support Files/Pods-CheerRelay/Pods-CheerRelay.release.xcconfig"; sourceTree = "<group>"; };
-		3C89D7C5B204B89D3AAFA097 /* Pods_CheerRelayTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CheerRelayTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		871CD25A46F171583506955B /* Pods-CheerRelayTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CheerRelayTests.debug.xcconfig"; path = "Target Support Files/Pods-CheerRelayTests/Pods-CheerRelayTests.debug.xcconfig"; sourceTree = "<group>"; };
-		B31D715FC96EAD6D7E2FCAB9 /* Pods_CheerRelay.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CheerRelay.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CF33A3B6881B4BB8CA1C6059 /* Pods-CheerRelay.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CheerRelay.debug.xcconfig"; path = "Target Support Files/Pods-CheerRelay/Pods-CheerRelay.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		000000000000000000000010 /* CheerRelay */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = CheerRelay;
 			sourceTree = "<group>";
 		};
 		000000000000000000000210 /* CheerRelayTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = CheerRelayTests;
 			sourceTree = "<group>";
 		};
@@ -50,7 +43,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				34786E7F0B16E3941211F882 /* Pods_CheerRelay.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,7 +50,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BBA1643B69238A2469AFF65D /* Pods_CheerRelayTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,8 +62,6 @@
 				000000000000000000000010 /* CheerRelay */,
 				000000000000000000000210 /* CheerRelayTests */,
 				000000000000000000000020 /* Products */,
-				27EE94F309349A0251069596 /* Pods */,
-				E7A85BB830BAAB4A62FEC880 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -85,26 +74,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		27EE94F309349A0251069596 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				CF33A3B6881B4BB8CA1C6059 /* Pods-CheerRelay.debug.xcconfig */,
-				264901A5F64108CBE7349470 /* Pods-CheerRelay.release.xcconfig */,
-				871CD25A46F171583506955B /* Pods-CheerRelayTests.debug.xcconfig */,
-				2501EB14FD8BE0B508DF0E90 /* Pods-CheerRelayTests.release.xcconfig */,
-			);
-			path = Pods;
-			sourceTree = "<group>";
-		};
-		E7A85BB830BAAB4A62FEC880 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				B31D715FC96EAD6D7E2FCAB9 /* Pods_CheerRelay.framework */,
-				3C89D7C5B204B89D3AAFA097 /* Pods_CheerRelayTests.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -112,11 +81,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 000000000000000110000000 /* Build configuration list for PBXNativeTarget "CheerRelay" */;
 			buildPhases = (
-				61F56562B4428ED854565CDF /* [CP] Check Pods Manifest.lock */,
 				000000000000000120000000 /* Sources */,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
-				3C2FCE9A73585F3468183804 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -134,7 +101,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 000000000000000210000000 /* Build configuration list for PBXNativeTarget "CheerRelayTests" */;
 			buildPhases = (
-				33338B0D65BA1BD20EF91D6F /* [CP] Check Pods Manifest.lock */,
 				000000000000000220000000 /* Sources */,
 				000000000000000230000000 /* Frameworks */,
 				000000000000000240000000 /* Resources */,
@@ -208,74 +174,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		33338B0D65BA1BD20EF91D6F /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-CheerRelayTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		3C2FCE9A73585F3468183804 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-CheerRelay/Pods-CheerRelay-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-CheerRelay/Pods-CheerRelay-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CheerRelay/Pods-CheerRelay-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		61F56562B4428ED854565CDF /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-CheerRelay-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		000000000000000120000000 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -341,7 +239,7 @@
 				DRIVERKIT_DEPLOYMENT_TARGET = 27.0;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -411,7 +309,7 @@
 				DRIVERKIT_DEPLOYMENT_TARGET = 27.0;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -436,7 +334,6 @@
 		};
 		000000000000000111000000 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CF33A3B6881B4BB8CA1C6059 /* Pods-CheerRelay.debug.xcconfig */;
 			buildSettings = {
 				CHEERS_API_URL = "http://127.0.0.1:8000";
 				CODE_SIGN_STYLE = Automatic;
@@ -483,7 +380,6 @@
 		};
 		000000000000000112000000 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 264901A5F64108CBE7349470 /* Pods-CheerRelay.release.xcconfig */;
 			buildSettings = {
 				CHEERS_API_URL = "https://chicago-cheers.vercel.app";
 				CODE_SIGN_STYLE = Automatic;
@@ -530,7 +426,6 @@
 		};
 		000000000000000211000000 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 871CD25A46F171583506955B /* Pods-CheerRelayTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -554,7 +449,6 @@
 		};
 		000000000000000212000000 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 2501EB14FD8BE0B508DF0E90 /* Pods-CheerRelayTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
