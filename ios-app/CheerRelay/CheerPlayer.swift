@@ -33,6 +33,49 @@ final class CheerPlayer: NSObject, ObservableObject {
         }
     }
 
+    /// Three short beeps, played exactly the way a cheer is — same queue, same
+    /// ducking — so the headphones and volume can be checked before the start.
+    func playSoundCheck() {
+        guard let chime = Self.soundCheck() else { return }
+        queue.append((audio: chime, sender: "Sound check"))
+        if player == nil {
+            playNext()
+        }
+    }
+
+    private nonisolated static func soundCheck() -> URL? {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("sound-check.wav")
+        if FileManager.default.fileExists(atPath: url.path) { return url }
+
+        let rate = 16_000
+        var samples: [Int16] = []
+        for _ in 0..<3 {
+            let beep = rate * 15 / 100
+            for i in 0..<beep {
+                // Eased in and out so the beeps don't click.
+                let envelope = sin(Double.pi * Double(i) / Double(beep))
+                let value = sin(2 * Double.pi * 880 * Double(i) / Double(rate)) * envelope * 0.6
+                samples.append(Int16(value * Double(Int16.max)))
+            }
+            samples += Array(repeating: 0, count: rate / 10)
+        }
+
+        var wav = Data()
+        func append<T: FixedWidthInteger>(_ value: T) {
+            withUnsafeBytes(of: value.littleEndian) { wav.append(contentsOf: $0) }
+        }
+        let bytes = samples.count * 2
+        wav.append(contentsOf: Array("RIFF".utf8)); append(UInt32(36 + bytes))
+        wav.append(contentsOf: Array("WAVEfmt ".utf8)); append(UInt32(16))
+        append(UInt16(1)); append(UInt16(1))                    // PCM, mono
+        append(UInt32(rate)); append(UInt32(rate * 2))
+        append(UInt16(2)); append(UInt16(16))
+        wav.append(contentsOf: Array("data".utf8)); append(UInt32(bytes))
+        samples.forEach { append($0) }
+
+        return (try? wav.write(to: url)) != nil ? url : nil
+    }
+
     private func playNext() {
         guard !queue.isEmpty else {
             finish()

@@ -8,6 +8,7 @@ struct RaceView: View {
     @State private var showingSignIn = false
     @State private var confirmingStop = false
     @State private var confirmingReset = false
+    @State private var showingReadiness = false
 
     var body: some View {
         NavigationView {
@@ -28,6 +29,10 @@ struct RaceView: View {
                 }
 
                 startStop
+
+                if !tracker.isRunning {
+                    readiness
+                }
 
                 miles
             }
@@ -50,6 +55,10 @@ struct RaceView: View {
                             .disabled(tracker.isRunning || isSyncing)
                     }
                 }
+            }
+            .sheet(isPresented: $showingReadiness) {
+                ReadinessView(tracker: tracker, library: library, sync: sync,
+                              player: player, runSync: runSync)
             }
             .sheet(isPresented: $showingSignIn, onDismiss: {
                 if sync.isSignedIn { Task { await runSync() } }
@@ -169,6 +178,22 @@ struct RaceView: View {
                         Text("Clears the distance and marks every cheer as not yet played, so they all play again from mile 1. For training runs only — never mid-race.")
                     }
             }
+        }
+    }
+
+    /// One line saying whether the phone is ready, opening the full checklist.
+    private var readiness: some View {
+        TimelineView(.periodic(from: .now, by: 5)) { context in
+            let summary = Readiness.summary(of: Readiness.check(
+                .current(tracker: tracker, library: library, sync: sync, now: context.date)))
+            Button {
+                showingReadiness = true
+            } label: {
+                Label(summary.text, systemImage: summary.status.symbol)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(summary.status.color)
+            }
+            .buttonStyle(.bordered)
         }
     }
 
