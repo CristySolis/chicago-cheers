@@ -29,7 +29,6 @@ sender page are hosted on [Vercel](https://vercel.com) at
 | `backend/` | The API and the sender page (`cheers/web/sender.html`). Python, Poetry. |
 | `supabase/` | Database tables (`migrations/`) and storage settings (`config.toml`). Tables and rules only — all logic lives in `backend/`. |
 | `ios-app/` | The race app, CheerRelay (SwiftUI). |
-| `watch-app/` | Leftover from the first design (text cheers on a Garmin watch). Not used: the Forerunner 935 can't do it. |
 
 ## Running the race
 
@@ -76,10 +75,9 @@ A cheer deleted in Supabase disappears from the phone at the next sync.
 
 ## Building the phone app
 
-Needs a Mac with Xcode and CocoaPods, and the iPhone connected by cable.
+Needs a Mac with Xcode, and the iPhone connected by cable.
 
-1. Open **`ios-app/CheerRelay.xcworkspace`** (the workspace, not the
-   `.xcodeproj`).
+1. Open **`ios-app/CheerRelay.xcodeproj`**.
 2. Pick which server the app talks to. The build configuration decides it:
    - **Debug** → the API running on this Mac (`http://127.0.0.1:8000`), for
      development.
@@ -96,7 +94,7 @@ The tests cover the course's cheer spots and the distance maths that decides
 when each cheer plays. Run them in Xcode with **Product → Test** (⌘U), or:
 
 ```bash
-cd ios-app && xcodebuild test -workspace CheerRelay.xcworkspace -scheme CheerRelay -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
+cd ios-app && xcodebuild test -project CheerRelay.xcodeproj -scheme CheerRelay -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
 ```
 
 ## Developing the backend
