@@ -86,6 +86,19 @@ final class RaceTracker: NSObject, ObservableObject {
         persist()
     }
 
+    /// Where location permission stands, for the race-morning checklist.
+    var locationAccess: ReadinessSnapshot.LocationAccess {
+        switch manager.authorizationStatus {
+        case .notDetermined: return .notAsked
+        case .denied, .restricted: return .denied
+        default: return manager.accuracyAuthorization == .fullAccuracy ? .allowed : .approximate
+        }
+    }
+
+    func askForLocation() {
+        manager.requestAlwaysAuthorization()
+    }
+
     func hasReached(mile: Double) -> Bool { meter.reachedMiles.contains(mile) }
 
     var nextMile: Double? {
