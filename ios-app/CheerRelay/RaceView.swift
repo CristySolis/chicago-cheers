@@ -6,6 +6,8 @@ struct RaceView: View {
     @StateObject private var player = CheerPlayer()
     @StateObject private var sync = CheerSync(api: ApiClient(baseURL: AppConfig.apiBaseURL))
     @State private var showingSignIn = false
+    @State private var confirmingStop = false
+    @State private var confirmingReset = false
 
     var body: some View {
         NavigationView {
@@ -134,17 +136,38 @@ struct RaceView: View {
         }
     }
 
+    /// Stop and Reset each take a second, deliberate tap. One stray touch
+    /// mid-race must not cost anything: a stop loses the distance run while
+    /// stopped, so every later cheer plays late, and a reset replays them all
+    /// from mile 1.
     private var startStop: some View {
         HStack(spacing: 12) {
-            Button(tracker.isRunning ? "Stop" : "Start") {
-                tracker.isRunning ? tracker.stop() : tracker.start()
+            if tracker.isRunning {
+                Button("Stop") { confirmingStop = true }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                    .confirmationDialog("Stop tracking?", isPresented: $confirmingStop,
+                                        titleVisibility: .visible) {
+                        Button("Stop tracking", role: .destructive) { tracker.stop() }
+                        Button("Keep going", role: .cancel) {}
+                    } message: {
+                        Text("Distance isn't counted while stopped, so every cheer after this would play late. Only stop at the finish.")
+                    }
+            } else {
+                Button(tracker.milesCovered > 0 ? "Resume" : "Start") { tracker.start() }
+                    .buttonStyle(.borderedProminent)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(tracker.isRunning ? .red : .accentColor)
 
             if !tracker.isRunning && tracker.milesCovered > 0 {
-                Button("Reset", role: .destructive) { tracker.reset() }
+                Button("Reset", role: .destructive) { confirmingReset = true }
                     .buttonStyle(.bordered)
+                    .confirmationDialog("Reset to 0 miles?", isPresented: $confirmingReset,
+                                        titleVisibility: .visible) {
+                        Button("Reset distance and cheers", role: .destructive) { tracker.reset() }
+                        Button("Cancel", role: .cancel) {}
+                    } message: {
+                        Text("Clears the distance and marks every cheer as not yet played, so they all play again from mile 1. For training runs only — never mid-race.")
+                    }
             }
         }
     }
