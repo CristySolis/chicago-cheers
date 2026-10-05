@@ -94,6 +94,15 @@ def sender_page(share_code: str, request: Request, service: Service) -> HTMLResp
     return HTMLResponse(page, headers={"Cache-Control": "no-cache"})
 
 
+@app.get("/cheery-wordmark.png", include_in_schema=False)
+def wordmark() -> FileResponse:
+    return FileResponse(
+        _WEB / "cheery-wordmark.png",
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
 @app.get("/cheer-preview.png", include_in_schema=False)
 def preview_image() -> FileResponse:
     return FileResponse(
@@ -119,7 +128,7 @@ def _link_preview(runner: str | None, origin: str) -> str:
         "og:image": f"{origin}/cheer-preview.png",
         "og:image:width": "1200",
         "og:image:height": "630",
-        "og:image:alt": "A Chicago Marathon race bib reading Record a cheer",
+        "og:image:alt": "The Cheery logo above the words Record a cheer",
         "twitter:card": "summary_large_image",
     }
     lines = [f'<meta name="description" content="{html.escape(description)}">']
