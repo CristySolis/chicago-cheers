@@ -25,7 +25,7 @@ async function draw() {
   c.fillRect(0, 0, 1200, 630);
 
   const mark = new Image();
-  mark.src = "cheery-wordmark.png";
+  mark.src = "cheery-wordmark.svg";
   await mark.decode();
   const w = 520, h = mark.height * (w / mark.width);
   c.drawImage(mark, (1200 - w) / 2, 66, w, h);
