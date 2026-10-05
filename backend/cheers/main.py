@@ -94,11 +94,11 @@ def sender_page(share_code: str, request: Request, service: Service) -> HTMLResp
     return HTMLResponse(page, headers={"Cache-Control": "no-cache"})
 
 
-@app.get("/cheery-wordmark.png", include_in_schema=False)
+@app.get("/cheery-wordmark.svg", include_in_schema=False)
 def wordmark() -> FileResponse:
     return FileResponse(
-        _WEB / "cheery-wordmark.png",
-        media_type="image/png",
+        _WEB / "cheery-wordmark.svg",
+        media_type="image/svg+xml",
         headers={"Cache-Control": "public, max-age=86400"},
     )
 
