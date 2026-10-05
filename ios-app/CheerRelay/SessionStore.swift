@@ -9,7 +9,7 @@ import Security
 /// saved here before anything else uses the session it came with.
 nonisolated enum SessionStore {
 
-    private static let service = "com.cristysolis.CheerRelay.session"
+    private static let service = "com.cristysolis.Cheery.session"
     private static let account = "refresh_token"
 
     static var refreshToken: String? {
