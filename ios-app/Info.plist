@@ -8,7 +8,7 @@
 	     lets a cheer start playing from the background. -->
 	<!-- The name under the icon on the home screen. -->
 	<key>CFBundleDisplayName</key>
-	<string>Chicago Cheers</string>
+	<string>Cheery</string>
 	<!-- Only HTTPS, no encryption of our own: this answers App Store Connect's
 	     export-compliance question once instead of on every upload. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
