@@ -1,0 +1,49 @@
+name: CI
+
+# Runs the same checks as backend/lint.sh, which is what a developer runs
+# before every commit: formatting, import rules, type checks and the fast
+# tests. Pinned to Poetry 1.8 because `poetry export` moved to a plugin in 2.x
+# and lint.sh uses it to prove requirements.txt still matches poetry.lock.
+#
+# Not here: the tests under backend/tests/api, which need a local Supabase
+# (Docker), and the iOS tests, which need Xcode 26 or newer for Swift 6.2's
+# `nonisolated` on types. Both are run locally — see the README.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: pipx install 'poetry==1.8.3'
+
+      - name: Cache the virtualenv
+        uses: actions/cache@v4
+        with:
+          path: backend/.venv
+          key: venv-${{ runner.os }}-py3.12-${{ hashFiles('backend/poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Lint, type-check and test
+        run: ./lint.sh
