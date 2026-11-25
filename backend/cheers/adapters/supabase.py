@@ -10,10 +10,10 @@ a running stack.
 
 import httpx
 
-from cheers.ports import Session
+from cheers.ports import IdentityVerifier, RecordingStore, RunnerSignIn, Session
 
 
-class SupabaseRecordingStore:
+class SupabaseRecordingStore(RecordingStore):
 
     def __init__(
         self, base_url: str, service_key: str, bucket: str, http: httpx.Client
@@ -56,7 +56,7 @@ class SupabaseRecordingStore:
         return f"{self._storage}{response.json()['signedURL']}"
 
 
-class SupabaseIdentityVerifier:
+class SupabaseIdentityVerifier(IdentityVerifier):
 
     def __init__(self, base_url: str, anon_key: str, http: httpx.Client):
         self._user_endpoint = f"{base_url.rstrip('/')}/auth/v1/user"
@@ -78,7 +78,7 @@ class SupabaseIdentityVerifier:
         return runner if isinstance(runner, str) else None
 
 
-class SupabaseRunnerSignIn:
+class SupabaseRunnerSignIn(RunnerSignIn):
 
     def __init__(self, base_url: str, anon_key: str, http: httpx.Client):
         self._token_endpoint = f"{base_url.rstrip('/')}/auth/v1/token"

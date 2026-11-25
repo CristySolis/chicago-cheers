@@ -38,7 +38,7 @@ so a 25-second WAV never has to fit inside a serverless function's limits.
 ## The rule the backend is built around
 
 The core — `models`, `ports`, `allocation`, `service` — doesn't know that
-Supabase or Vercel exist. Everything provider-shaped sits behind a Protocol in
+Supabase or Vercel exist. Everything provider-shaped sits behind an abstract base class in
 [`ports.py`](../backend/cheers/ports.py): somewhere to put recordings, something
 that turns a token into a runner id, something that signs her in.
 [`config.py`](../backend/cheers/config.py) is the only file that names Supabase,

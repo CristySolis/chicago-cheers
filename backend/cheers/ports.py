@@ -7,30 +7,34 @@ changes. The database needs no such seam: it's plain Postgres, which Cloud SQL
 also is.
 """
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Protocol
 
 
-class RecordingStore(Protocol):
+class RecordingStore(ABC):
     """Where recordings live. Nobody ever gets standing access to it: senders
     receive a link that uploads one file to one place, and the runner receives
     links that download her own recordings, each for a limited time."""
 
+    @abstractmethod
     def upload_url(self, path: str) -> str:
         """A link that accepts one plain PUT of a WAV file to `path`, and
         refuses to overwrite anything already there."""
         ...
 
+    @abstractmethod
     def exists(self, path: str) -> bool: ...
 
+    @abstractmethod
     def download_url(self, path: str) -> str:
         """A time-limited link that plays the recording at `path`."""
         ...
 
 
-class IdentityVerifier(Protocol):
+class IdentityVerifier(ABC):
     """Turns the runner's sign-in token into the id her events are stored under."""
 
+    @abstractmethod
     def runner_id(self, token: str) -> str | None:
         """The runner's id, or None if the token isn't valid."""
         ...
@@ -43,14 +47,16 @@ class Session:
     expires_in: int  # seconds until access_token stops working
 
 
-class RunnerSignIn(Protocol):
+class RunnerSignIn(ABC):
     """Signs the runner in on her phone's behalf, so the phone talks only to
     this API and never to the login provider directly."""
 
+    @abstractmethod
     def sign_in(self, email: str, password: str) -> Session | None:
         """A new session, or None if the email and password don't match."""
         ...
 
+    @abstractmethod
     def refresh(self, refresh_token: str) -> Session | None:
         """A fresh session, or None if the refresh token is no longer valid.
 
