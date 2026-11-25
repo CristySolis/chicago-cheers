@@ -1,235 +1,173 @@
-# How Chicago Cheers works
+# How Chicago Cheers Works
 
-Friends and family each claim a spot on the course and record a short cheer.
-On race day the runner's phone plays each one when she reaches that spot,
-turning the music down while it plays.
+Friends and family each claim a mile (or half-mile) on the marathon course and record a short audio cheer (up to 25 seconds). On race day, the runner's iPhone plays each recording automatically when she reaches that mile, turning her music down briefly while it plays.
 
-Two things shape every decision below:
+Every design choice comes from two real-world constraints:
 
-1. **Race day has no second try.** The phone must work on a saturated network
-   in the Loop, in an armband, for four and a half hours, on one battery.
-2. **Supporters are strangers to each other.** Nobody should be able to see who
-   else recorded, or hear anything they sent.
+1. **Race day has no do-overs.** Cell networks are jammed around the start and downtown, and the phone has to run in an armband for 4.5+ hours on one battery. So the app cannot depend on internet access during the race.
+2. **Supporters shouldn't spoil surprises.** People recording cheers shouldn't be able to see who else recorded or listen to anyone else's messages.
 
-## The three parts
+---
 
-```
-Supporter's phone            The internet                    The runner's iPhone
+## High-Level Architecture
 
- sender page ────────────▶  API (Python, on Vercel)  ◀────────  Sync
- (pick spot, name,           ├─ Postgres: who, which spot       (before the race)
-  record, send)              └─ storage: the recordings ──────▶
-      │                              ▲                          race day: GPS → spot
-      └── recording uploads ─────────┘                          → play the cheer
-          straight to storage
+```text
+Supporter's phone            Backend & Storage               Runner's iPhone
+─────────────────            ─────────────────               ───────────────
+ sender.html ─────────────▶  FastAPI (Vercel)  ◀───────────  CheerRelay (SwiftUI)
+ (pick spot, name,            ├─ Postgres (Supabase):         ├─ Before race: Sync
+  record, send)               │   events, seats, cheers       │   (downloads WAVs +
+      │                       └─ Object Storage ────────────▶ │    writes manifest)
+      └── WAV uploads ───────────▶ (presigned URL)            └─ Race day: offline
+          straight to storage                                    GPS -> duck music -> play
 ```
 
-| Part | Where | What it is |
+| Part | Location | What it does |
 |---|---|---|
-| Sender page | `backend/cheers/web/sender.html` | One static file, served by the API. Bilingual (English/Spanish), records in the browser. |
-| API | `backend/cheers/` | FastAPI on Vercel. Holds every rule. |
-| Database | `supabase/migrations/` | Plain Postgres. Structure and one constraint, no logic. |
-| Race app | `ios-app/CheerRelay/` | SwiftUI. Syncs before the race, runs offline during it. |
+| **Sender web page** | `backend/cheers/web/sender.html` | Single static page served by the API. Bilingual (`EN`/`ES`); records audio directly in the browser. |
+| **Backend API** | `backend/cheers/` | FastAPI app on Vercel. Owns all validation, spot allocation, and auth rules. |
+| **Database** | `supabase/migrations/` | Plain Postgres tables and one unique constraint—no stored procedures or business logic. |
+| **iOS race app** | `ios-app/CheerRelay/` | SwiftUI app. Downloads cheers ahead of time and runs 100% offline on race day. |
 
-Recordings never pass through the API. The API hands out a link that accepts
-one upload to one path, and the browser PUTs the file straight to storage —
-so a 25-second WAV never has to fit inside a serverless function's limits.
+### Why audio uploads bypass the API
 
-## The rule the backend is built around
+Serverless functions (like Vercel) have strict request-size limits and short timeouts. Instead of sending a 25-second WAV file through our Python API, the API asks storage for a **single-use upload URL** and hands it to the browser. The browser `PUT`s the audio file straight into storage. That keeps large audio payloads off the API server completely.
 
-The core — `models`, `ports`, `allocation`, `service` — doesn't know that
-Supabase or Vercel exist. Everything provider-shaped sits behind an abstract base class in
-[`ports.py`](../backend/cheers/ports.py): somewhere to put recordings, something
-that turns a token into a runner id, something that signs her in.
-[`config.py`](../backend/cheers/config.py) is the only file that names Supabase,
-and [`main.py`](../backend/cheers/main.py) is the only one that knows about HTTP.
+---
 
-This isn't a claim in a comment — `import-linter` enforces it on every commit,
-and CI fails if it's broken:
+## Keeping the Backend Clean (`ports.py` and `adapters/`)
 
-```
+The core business logic (`models.py`, `ports.py`, `allocation.py`, `service.py`) is written so it has no idea Supabase or Vercel exist:
+
+- **[`ports.py`](../backend/cheers/ports.py)** defines abstract base classes (`ABC`) for the external services the app needs:
+  - `RecordingStore` (create upload/download links, check if a file exists)
+  - `IdentityVerifier` (turn a runner's auth token into a user ID)
+  - `RunnerSignIn` (sign in and refresh sessions)
+- **[`adapters/supabase.py`](../backend/cheers/adapters/supabase.py)** implements those ABCs using Supabase's HTTP APIs.
+- **[`config.py`](../backend/cheers/config.py)** wires the real adapters together on startup, and **[`main.py`](../backend/cheers/main.py)** handles HTTP routes.
+
+This boundary isn't just a convention—`import-linter` checks it automatically on every commit and fails CI if core modules import FastAPI, HTTP clients, or Supabase adapters:
+
+```text
 Core rules don't depend on providers, wiring or HTTP ... KEPT
 Seat ranking stays pure ............................... KEPT
 ```
 
-The database needs no such seam. It's plain Postgres, which Cloud SQL also is,
-so [`repository.py`](../backend/cheers/repository.py) writes SQL directly rather
-than going through Supabase's client. Moving the whole thing to Google Cloud
-means three new adapter classes and a different connection string.
+Because the database layer ([`repository.py`](../backend/cheers/repository.py)) uses standard SQL via `psycopg` rather than a Supabase-specific SDK, switching hosting (for example, to Google Cloud Run + Cloud SQL + Cloud Storage + Firebase Auth) would only mean writing new adapter classes in `adapters/` and changing the connection string.
 
-## Claiming a spot
+---
 
-Every spot on the course has **two seats**: the first person, and whoever
-doubles up once every spot is taken. Two seats per spot also caps the event at
-twice its spots, with no separate limit to keep in step.
+## How Mile Spots Are Claimed
 
-When a supporter asks for a spot, [`allocation.py`](../backend/cheers/allocation.py)
-ranks every free seat — 35 lines, no database, no clock:
+Each spot on the course has **2 seats** (Seat 1 and Seat 2). That automatically caps an event at `2 × number of spots` cheers without needing a separate counter to keep in sync.
 
-1. First seats before second, so nobody doubles up while a spot is still free.
-2. Spots at or after the one asked for before earlier ones, so a taken spot
-   slides to the *next* one rather than backwards.
-3. Nearest first.
+When a supporter picks a spot (say, Mile 10), [`allocation.py`](../backend/cheers/allocation.py) sorts every open seat in priority order:
 
-Then the service walks that ranking and tries to take each seat in turn.
+1. **Seat 1 before Seat 2:** Nobody doubles up on a mile while any other mile is still empty.
+2. **At or after the requested mile before earlier ones:** If Mile 10 is full, the cheer slides forward to Mile 11 instead of backward to Mile 9.
+3. **Closest first.**
 
-**Two people pressing the button at the same moment is handled by the database,
-not by a lock.** The `one_person_per_seat` unique constraint accepts one insert
-and refuses the other; the loser catches `SeatTaken` and moves to the next best
-seat. That's why the ranking is allowed to come from a snapshot that's already
-slightly stale — being wrong about what's free costs one retry, not a bad
-answer.
+### Handling simultaneous claims without locks
 
-### A claim is not yet a cheer
+If two people tap Mile 10 at the exact same moment, we don't use a distributed lock or queue. Instead, the Postgres table has a unique constraint (`one_person_per_seat`) on `(event_id, slot, seat)`.
 
-```
-POST /api/events/{share_code}/claims   seat taken, upload link handed back
-        │
-        ▼  browser PUTs the WAV straight to storage
-POST /api/claims/{cheer_id}/complete   API checks the file is really there
-        │
-        ▼
-   visible to the runner's phone
+Both requests try to `INSERT`:
+- The first one wins.
+- The second one hits the unique constraint, catches `SeatTaken` in the service, and retries the next-best seat from the list.
+
+### Two-step upload flow (so broken uploads don't break race day)
+
+```text
+1. POST /api/events/{share_code}/claims   -> reserves seat, returns 1-time upload URL
+2. Browser PUTs WAV straight to storage
+3. POST /api/claims/{cheer_id}/complete   -> API checks the file actually exists in storage
+                                             before marking the cheer ready for the phone
 ```
 
-A row with no `audio_path` is a reservation, not a cheer, and never reaches the
-phone. Reservations hold their seat for 15 minutes — long enough for a slow
-phone connection, short enough that an abandoned browser tab doesn't keep a
-spot from someone else. Lapsed ones are swept on the next claim, so there's no
-scheduled job to go wrong.
+A newly claimed row has no `audio_path` yet, so it's treated as a temporary **reservation**, not a finished cheer, and never shows up on the runner's phone:
 
-`complete` verifies the file exists in storage before marking the row finished.
-A claim whose upload silently failed stays invisible rather than becoming a
-cheer the phone tries to download and can't.
+- If someone closes their tab before finishing the upload, the reservation expires after **15 minutes**.
+- Expired reservations are deleted automatically at the start of the next claim—no background cron job needed.
+- `complete` checks storage directly before finalizing the row, so a silent upload failure never leaves the phone trying to download a missing file.
 
-## Keeping supporters apart
+---
 
-- The public event endpoint returns **counts per spot, never names**. There is
-  no endpoint that lists who recorded, and none that returns another
-  supporter's audio.
-- A share code is the only handle a supporter has. It identifies the event and
-  nothing else.
-- Asking for someone else's event as the runner returns the same answer as an
-  event that doesn't exist, so the API can't be used to discover which events
-  are real.
-- Nobody gets standing access to storage. Senders get a link that accepts one
-  file at one path and refuses to overwrite; the runner gets time-limited
-  download links for her own recordings.
-- Supabase publishes every table through an automatic REST API.
-  **Row-level security is enabled with no policies at all**, which closes that
-  door completely — the Python API is the only way in, and its rules can't be
-  walked around. On Cloud SQL there is no such API and the line is simply inert.
+## Privacy Between Supporters
 
-## The phone
+- **Counts only on public pages:** The sender page endpoint returns how many cheers each mile has, never supporter names or audio URLs.
+- **Opaque share links:** Supporters only ever see the random `share_code` in the URL.
+- **No event enumeration:** Asking for another runner's event returns the same "not found" error as a nonexistent event, so nobody can probe which IDs exist.
+- **Scoped storage URLs:** Senders get a single-use upload link for one specific path (with overwrite disabled); only the signed-in runner gets temporary download links for her own event.
+- **Supabase auto-API locked down:** Supabase automatically exposes tables via a built-in REST API. Enabling Postgres Row-Level Security (RLS) with **zero policies** blocks that API completely, so every read and write must go through our FastAPI backend.
 
-### Sync is a step, not a background process
+---
 
-Sync runs **before** the race, never during it. It signs in, fetches the
-runner's cheers, downloads each WAV, and writes a manifest. After that the race
-reads only what's on disk.
+## The iOS App (`CheerRelay`)
 
-Three details that matter more than they look:
+### 1. Pre-race sync vs. race-day playback
 
-- **Only the manifest decides what plays.** Files it no longer names are left
-  in place rather than deleted, so a bad answer from the server can never
-  destroy recordings the phone already holds.
-- **Files live in Application Support, not Caches.** iOS empties Caches when
-  storage runs low, and the night before a marathon is exactly when that must
-  not happen.
-- **A finished recording can never change on the server**, so a file already on
-  the phone is kept rather than fetched again. Re-syncing after one new cheer
-  downloads one file.
+Syncing happens **before** the race, never during it. When the runner taps **Sync**, the app downloads each WAV file and saves a local manifest. During the race, the UI reads only through [`CheerSource`](../ios-app/CheerRelay/CheerSource.swift), a Swift protocol whose contract is *"all audio is already on disk."*
 
-The race screen reads through [`CheerSource`](../ios-app/CheerRelay/CheerSource.swift),
-a protocol whose contract is *the audio is already on this device*. Fetching the
-catalogue and making it available offline are deliberately separate steps, which
-is what keeps the network out of race day entirely.
+Three small details prevent data loss:
 
-### Distance, and the mistake worth writing down
+- **Stored in `Application Support`, not `Caches`:** iOS automatically clears `Caches` when phone storage runs low—which could wipe recordings overnight before the race.
+- **Manifest-driven playback:** Old audio files aren't deleted aggressively during sync, and the manifest only points to valid downloaded files, so a partial or failed sync can't destroy cheers already on the phone.
+- **Incremental downloads:** Completed cheers are immutable on the server, so re-syncing after one new recording arrives only downloads that one new file.
 
-The obvious way to measure distance is to add up the gaps between GPS fixes.
-It reads about **6% long** — 200 m by mile 2, which would be 1.6 miles by the
-finish — and simulating noisier reception, like the Loop's towers, pushes that
-past **20%**. Every fix is a few metres off in a direction that wanders, so the
-traced path zigzags, and a zigzag is longer than the line actually run.
+### 2. Measuring distance accurately in a downtown marathon
 
-The receiver's Doppler speed doesn't wobble that way — within 0.2% in the same
-simulation. So [`DistanceMeter`](../ios-app/CheerRelay/DistanceMeter.swift)
-**integrates speed over time**, falling back to position only when speed isn't
-reported. It also drops fixes that would poison the total:
+A naive GPS tracker adds up the straight-line distances between consecutive `(lat, lon)` coordinates. The problem is that every GPS fix is off by a few meters in a random direction, creating a **zigzag path** that is longer than the straight line actually run:
 
-| Gate | Why |
+- In field testing, naive position-to-position summing read **~6% long** (already 200 m off by mile 2, or ~1.6 miles off by the finish).
+- Around tall downtown skyscrapers (like Chicago's Loop), simulated GPS bounce pushed that error past **20%**.
+
+Instead, [`DistanceMeter`](../ios-app/CheerRelay/DistanceMeter.swift) uses the GPS chip's **Doppler speed** (which measures velocity directly from satellite frequency shift and doesn't zigzag like coordinates do). On each update, it multiplies average speed by elapsed time (`(prev.speed + fix.speed) / 2 * elapsed`), falling back to coordinate distance only when speed isn't reported (ignoring steps ≤ 1 m in that fallback as standing jitter). In the same urban simulation, that stayed within **0.2%**.
+
+Before counting any GPS update, `DistanceMeter` also filters out bad fixes:
+
+| Filter | Why |
 |---|---|
-| accuracy worse than 25 m | too vague to count |
-| fix older than 5 s on arrival | iOS sometimes delivers a cached position first, which would count distance from the wrong place |
-| implied pace over 8 m/s | a bad fix, far faster than any marathon pace |
-| under 1 m of movement | jitter while standing still |
+| `horizontalAccuracy >= 25 m` (or `<= 0`) | Fix is too imprecise to trust |
+| Timestamp older than `5 s` on arrival | iOS sometimes delivers a cached position from earlier |
+| Implied speed `>= 8 m/s` | Faster than marathon sprint speed—indicates a GPS jump |
 
-`DistanceMeter` is a pure struct with no location manager, no storage and no
-clock of its own, so the tests feed it invented fixes and assert on the
-arithmetic. [`RaceTracker`](../ios-app/CheerRelay/RaceTracker.swift) owns the
-GPS and the saving; the maths is separate from both.
+`DistanceMeter` is a pure Swift struct with no location manager, storage, or clock, so unit tests feed it synthetic GPS points directly. [`RaceTracker`](../ios-app/CheerRelay/RaceTracker.swift) owns `CLLocationManager` and persistence:
 
-Precision deliberately isn't the goal: a cheer placed at mile 18 reads the same
-arriving 100 m early or late. So the location manager asks for ten-metre
-accuracy rather than best — materially kinder to the battery over four and a
-half hours. Two settings exist purely because the race is long:
-`pausesLocationUpdatesAutomatically = false`, because iOS otherwise decides the
-runner has stopped and silently ends updates; and progress written to disk on
-every single update, because an app restart at mile 14 must not replay miles
-1 through 13.
+- **10-meter accuracy** instead of "best": cheers don't need centimeter precision, and 10 m uses noticeably less battery over 4.5+ hours.
+- **`pausesLocationUpdatesAutomatically = false`**: prevents iOS from pausing GPS if the runner slows down at a water station or crowded turn.
+- **Saved on every update**: if the app crashes or the phone restarts at mile 14, it resumes from mile 14 instead of replaying miles 1–13.
 
-### Where the cheers go
+### 3. Course spacing & audio ducking
 
-One per mile for the first half, where the runner is fresh and the crowds are
-already thick; one per half mile for the second, where they're needed most.
-That puts 26 of the 39 spots in the back half — more than switching to
-kilometres would give (21) — while still matching the mile markers painted on
-the course, so a cheer expected at mile 20 lines up with a sign the runner can
-actually see.
+- **39 spots total:** One per mile for Miles 1–13, then one every half-mile from Mile 13.5 to 26. That puts **26 of 39 cheers in the second half** (more support when fatigue sets in) while still lining up with the mile markers painted on the course.
+- **Queued & ducked audio:** If a spot has two cheers, they play one after another instead of overlapping, and the audio session temporarily lowers ("ducks") whatever music or podcast is playing rather than stopping it.
 
-Cheers queue rather than overlap, since a spot can hold two once everything is
-claimed, and they duck whatever else is playing rather than stopping it.
+### 4. Race-morning readiness check
 
-### The race-morning checklist
+[`Readiness`](../ios-app/CheerRelay/Readiness.swift) inspects a snapshot of the phone—location permission, sign-in state, synced cheers, missing audio files, sync age, battery level, headphone connection, and volume—and groups issues into blocking **problems** vs. **warnings** with one-tap fixes. Because it's pure functions over a plain struct, all rules are unit-tested without a physical iPhone.
 
-[`Readiness`](../ios-app/CheerRelay/Readiness.swift) reads the phone at one
-moment — location permission, sign-in, cheers on disk, cheers missing audio,
-time since last sync, battery, output route, volume — and turns it into four
-items with a one-tap fix each. A *problem* means cheers won't play, or not in
-the right place; a *warning* means they'll play but something is worth a look:
-quiet volume, playing through the speaker, a battery that may not last. The
-rules are plain functions over a plain snapshot struct, so they're tested
-without a phone.
+It also includes a **Play test sound** button that plays three beeps through the exact same audio-ducking queue used on race day, so the runner can confirm music dips properly in her headphones before starting.
 
-There's also a sound check: three generated beeps played through exactly the
-same queue and ducking as a real cheer, so headphones and volume can be proven
-at the start line rather than hoped about.
+---
 
-## Testing
+## Testing Strategy
 
-| Suite | Needs | Covers |
+| Suite | Requires | What it tests |
 |---|---|---|
-| `backend/tests/test_allocation.py` | nothing | seat ranking |
-| `backend/tests/api/` | local Supabase (Docker) | the API end to end, including concurrent claims |
-| `ios-app/CheerRelayTests/` | Xcode 26+ | course spots, distance maths, race log, readiness rules |
+| `backend/tests/test_allocation.py` | Nothing | Seat-ranking rules (Seat 1 vs. Seat 2, forward slide, nearest) |
+| `backend/tests/api/` | Local Supabase (Docker) | End-to-end HTTP endpoints, auth, and concurrent claim races |
+| `ios-app/CheerRelayTests/` | Xcode 26+ | Course mile layout, `DistanceMeter` GPS filters & math, `RaceLog`, `Readiness` rules |
 
-The split is deliberate: the logic that decides *where a cheer lands* and *when
-it plays* is pure and tested in isolation, because that's the part with real
-rules in it. The provider-shaped code is thin enough to read.
+We put pure business rules (seat ranking, GPS math, readiness checks) into standalone, dependency-free modules so they're fast and easy to test in isolation, while keeping external adapters thin enough to verify end-to-end against local Supabase.
 
-CI runs the backend checks on every push and pull request. The API tests and the
-iOS tests run locally — the first needs Docker, the second needs Xcode.
+---
 
-## What would change if the hosting changed
+## What Would Change If Hosting Changed
 
-| Today | Instead | Work |
+| Today | Alternative | Effort to swap |
 |---|---|---|
-| Vercel function | Cloud Run container | none — it's a standard ASGI app |
-| Supabase Postgres | Cloud SQL | connection string |
-| Supabase Storage | Cloud Storage | one adapter class |
-| Supabase Auth | Firebase Auth | two adapter classes |
-| Supabase's REST API, closed by RLS | doesn't exist | nothing; the line goes inert |
-
-The sender page is served by the API rather than by static hosting, so the page
-and the API it calls always share an origin and move hosts together.
+| Vercel serverless function | Google Cloud Run container | None—standard ASGI (`FastAPI`) app |
+| Supabase Postgres | Cloud SQL (Postgres) | Change `DATABASE_URL` |
+| Supabase Storage | Google Cloud Storage | Implement `RecordingStore` ABC |
+| Supabase Auth | Firebase Auth | Implement `IdentityVerifier` & `RunnerSignIn` ABCs |
+| Supabase RLS lock | Not needed on Cloud SQL | No auto-REST API to block |
