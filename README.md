@@ -1,5 +1,7 @@
 # Chicago Cheers
 
+[![CI](https://github.com/CristySolis/chicago-cheers/actions/workflows/ci.yml/badge.svg)](https://github.com/CristySolis/chicago-cheers/actions/workflows/ci.yml)
+
 Friends and family each claim a mile of the Chicago Marathon (11 October 2026)
 and record a cheer of up to 25 seconds. On race day, Cristy's iPhone plays
 each cheer when Cristy reaches its mile, turning the music down while it
@@ -19,8 +21,8 @@ Supporter's phone            The internet                    Cristy's iPhone
 
 The database and storage are [Supabase](https://supabase.com); the API and the
 sender page are hosted on [Vercel](https://vercel.com) at
-`https://chicago-cheers.vercel.app`. A fuller explanation with diagrams is in the
-[architecture doc](https://claude.ai/code/artifact/bcfec7d7-4a3e-4ef8-9b1b-7a55dac6068d).
+`https://chicago-cheers.vercel.app`. How the three parts fit together, and why
+each is built the way it is, is in [docs/architecture.md](docs/architecture.md).
 
 ## What's where
 
@@ -29,6 +31,7 @@ sender page are hosted on [Vercel](https://vercel.com) at
 | `backend/` | The API and the sender page (`cheers/web/sender.html`). Python, Poetry. |
 | `supabase/` | Database tables (`migrations/`) and storage settings (`config.toml`). Tables and rules only — all logic lives in `backend/`. |
 | `ios-app/` | The race app, CheerRelay (SwiftUI). |
+| `docs/` | [How it works](docs/architecture.md) — the design, and why it's built this way. |
 
 ## Running the race
 
@@ -148,3 +151,7 @@ columns nullable), so the code already live keeps working in between.
 - [ ] Rebuild the app on 9–10 October (Release), sign in, sync.
 - [ ] A long run with the app, phone locked, to check battery and GPS timing.
 - [ ] Race morning: final sync on Wi-Fi, headphones connected, start at the line.
+
+## Licence
+
+[MIT](LICENSE).
